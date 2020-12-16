@@ -5,7 +5,13 @@ const argv = require('minimist')(process.argv.slice(3));
 var static = require('node-static');
 const chokidar = require('chokidar');
 const path = require("path");
-// const version = "0.0.x";
+const ghRelease = require('gh-release')
+const {
+    Octokit
+} = require("@octokit/rest");
+
+const version = "0.0.x";
+const name = "PluriDB"
 const runner = (config) => {
     return new Promise((res, rej) => {
         webpack(config).run((err, stats) => {
@@ -53,8 +59,8 @@ const serve = async () => {
         if (fs.existsSync("./build")) {
             deleteFolderRecursive("./build");
         }
-        copyFolderRecursiveSync("./docs", "./build", (path)=>{
-            fs.writeFileSync(path,fs.readFileSync(path,"utf-8").replace(/https:\/\/cdn\.jsdelivr\.net\/npm\/.*?@.*?\/dist\/(.*?[ "'`])/gi,'./$1'));
+        copyFolderRecursiveSync("./docs", "./build", (path) => {
+            fs.writeFileSync(path, fs.readFileSync(path, "utf-8").replace(/https:\/\/cdn\.jsdelivr\.net\/npm\/.*?@.*?\/dist\/(.*?[ "'`])/gi, './$1'));
         });
         await runner(webpackConfig);
     }
@@ -76,7 +82,62 @@ const build = async () => {
         deleteFolderRecursive("./build");
     }
     await runner(webpackConfig);
+    let files = fs.readdirSync('./build');
+    files.map(file=>'./build/'+file);
+    return files;
 };
+
+const uploadGithub = (thisVersion, pass, files) => {
+    let body = `
+    ## [${thisVersion}] - ${new Date().getFullYear()}-${new Date().getMonth()}-${new Date().getDate()}`;
+    let file = fs.readFileSync("./CHANGELOG.md","utf-8");
+    if(file.indexOf(`## [${thisVersion}] -`) !== -1){
+        body=undefined;
+    }
+    return new Promise((accept, reject) => {
+        ghRelease({
+                auth: {
+                    token: pass
+                },
+                tag_name: thisVersion,
+                name: thisVersion,
+                body: body,
+                assets: files
+            },
+            (err, result) => {
+                if (!err) {
+                    accept(result)
+                } else {
+                    reject(err)
+                }
+            })
+    })
+}
+
+const getVersion = async (user, pass) => {
+    const octokit = new Octokit({
+        auth: pass,
+    });
+    const {data:{tag_name}} = await octokit.repos.getLatestRelease({owner:user,repo:name});
+    let versionPrefix = version.split('.').slice(0,-1).join(".")+".";
+    let latestVersionPrefix = tag_name.split('.').slice(0,-1).join(".")+".";
+    if(latestVersionPrefix!==versionPrefix){
+        return versionPrefix+0;
+    }else{
+        let latestVersionSufix = Number(tag_name.split('.').pop());
+        return versionPrefix+(latestVersionSufix+1);
+    }
+
+}
+
+const publish = async () => {
+    console.log("Starting publishing procedure...");
+    let user = argv.user;
+    let pass = argv.pass;
+    let files = await build();
+    let thisVersion = await getVersion(user, pass);
+    await uploadGithub(thisVersion, pass, files);
+}
 
 const main = async () => {
     console.log("Welcome to PluriDB development util");
@@ -89,7 +150,7 @@ const main = async () => {
             await build();
             break;
         case "publish":
-
+            await publish();
             break;
         default:
             break;
