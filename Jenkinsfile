@@ -16,7 +16,7 @@ pipeline {
                     steps {
                         echo 'Linting...'
                         catchError {
-                            sh 'npm run lint -- -f checkstyle -o eslint.xml'
+                            sh 'npm run lint'
                         }
                     }
                     post {
