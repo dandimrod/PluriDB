@@ -6,11 +6,6 @@ pipeline {
 
     stages {
         stage('Installing dependencies') {
-            when {
-                expression {
-                    env.BRANCH_NAME == 'master'
-                }
-            }
             steps {
                 sh 'npm install'
             }
