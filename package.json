@@ -6,8 +6,8 @@
   "scripts": {
     "serve": "node ./index.js serve",
     "build": "node ./index.js build",
-    "publish": "node ./index.js publish",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/mocha",
+    "lint": "./node_modules/.bin/eslint"
   },
   "repository": {
     "type": "git",
@@ -32,5 +32,9 @@
     "terser-webpack-plugin": "^5.0.3",
     "webpack": "^5.10.3",
     "webpack-dev-server": "^3.11.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.15.0",
+    "mocha": "^8.2.1"
   }
 }

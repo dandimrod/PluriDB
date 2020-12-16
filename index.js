@@ -5,7 +5,7 @@ const argv = require('minimist')(process.argv.slice(3));
 var static = require('node-static');
 const chokidar = require('chokidar');
 const path = require("path");
-const version = "0.0.x";
+// const version = "0.0.x";
 const runner = (config) => {
     return new Promise((res, rej) => {
         webpack(config).run((err, stats) => {
@@ -19,7 +19,7 @@ const runner = (config) => {
 };
 const deleteFolderRecursive = function (pathFol) {
     if (fs.existsSync(pathFol)) {
-        fs.readdirSync(pathFol).forEach((file, index) => {
+        fs.readdirSync(pathFol).forEach((file) => {
             const curPath = path.join(pathFol, file);
             if (fs.lstatSync(curPath).isDirectory()) { // recurse
                 deleteFolderRecursive(curPath);
