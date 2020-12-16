@@ -1,0 +1,6 @@
+{
+    "name": "pluridb-mongodb-module",
+    "description": "",
+    "main": "PluriDB.mongodb.module.js"
+}
+  
