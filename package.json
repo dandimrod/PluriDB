@@ -7,7 +7,7 @@
     "serve": "node ./index.js serve",
     "build": "node ./index.js build",
     "test": "./node_modules/.bin/mocha --reporter mocha-junit-reporter",
-    "lint": "./node_modules/.bin/eslint -o eslint.xml"
+    "lint": "./node_modules/.bin/eslint '**/*.js' --ignore-pattern node_modules/ --debug --max-warnings 10 -f jslint-xml -o ./eslint.xml"
   },
   "repository": {
     "type": "git",
