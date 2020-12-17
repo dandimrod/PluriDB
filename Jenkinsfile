@@ -52,7 +52,7 @@ pipeline {
                         usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD'
                     ]
                 ]) {
-                    sh 'node index.js build --user $USERNAME --pass $PASSWORD'
+                    sh 'node index.js publish --user $USERNAME --pass $PASSWORD'
                 }
             }
         }
