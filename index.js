@@ -88,6 +88,8 @@ const build = async () => {
 };
 
 const uploadGithub = (thisVersion, pass, files) => {
+    console.log("Uploading version "+thisVersion+"...");
+
     let body = `## [${thisVersion}] - ${new Date().getFullYear()}-${new Date().getMonth()}-${new Date().getDate()}`;
     return new Promise((accept, reject) => {
         ghRelease({
@@ -110,6 +112,7 @@ const uploadGithub = (thisVersion, pass, files) => {
 }
 
 const getVersion = async (user, pass) => {
+    console.log("Creating new version...");
     const octokit = new Octokit({
         auth: pass,
     });
