@@ -1,6 +1,6 @@
 {
   "name": "pluridb-dev",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "PluriDB is a database for web that works on top of IndexedDB and supports multiple fallbacks and syntaxis",
   "main": "index.js",
   "scripts": {
