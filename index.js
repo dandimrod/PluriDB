@@ -83,17 +83,12 @@ const build = async () => {
     }
     await runner(webpackConfig);
     let files = fs.readdirSync('./build');
-    files.map(file=>'./build/'+file);
+    files=files.map(file=>'./build/'+file);
     return files;
 };
 
 const uploadGithub = (thisVersion, pass, files) => {
-    let body = `
-    ## [${thisVersion}] - ${new Date().getFullYear()}-${new Date().getMonth()}-${new Date().getDate()}`;
-    let file = fs.readFileSync("./CHANGELOG.md","utf-8");
-    if(file.indexOf(`## [${thisVersion}] -`) !== -1){
-        body=undefined;
-    }
+    let body = `## [${thisVersion}] - ${new Date().getFullYear()}-${new Date().getMonth()}-${new Date().getDate()}`;
     return new Promise((accept, reject) => {
         ghRelease({
                 auth: {

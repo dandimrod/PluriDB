@@ -10,3 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Webpack support (#6)
 - Testing with mocha and eslint (#8)
 - Automation with Jenkins (#4)
+
+## [0.0.0] - 2020-12-17
+### Added
+- Initial commit
