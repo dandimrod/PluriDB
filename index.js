@@ -134,7 +134,7 @@ const publish = async () => {
     let pass = argv.pass;
     let files = await build();
     let thisVersion = await getVersion(user, pass);
-    await uploadGithub(thisVersion, pass, files);
+    console.log(await uploadGithub(thisVersion, pass, files));
 }
 
 const main = async () => {
