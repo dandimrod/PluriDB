@@ -5,7 +5,9 @@ const argv = require('minimist')(process.argv.slice(3));
 var static = require('node-static');
 const chokidar = require('chokidar');
 const path = require("path");
-const ghRelease = require('gh-release')
+const grizzly = require('grizzly');
+const putasset = require('putasset');
+
 const {
     Octokit
 } = require("@octokit/rest");
@@ -83,47 +85,73 @@ const build = async () => {
     }
     await runner(webpackConfig);
     let files = fs.readdirSync('./build');
-    files=files.map(file=>'./build/'+file);
+    files = files.map(file => './build/' + file);
     return files;
 };
 
-const uploadGithub = (thisVersion, pass, files) => {
-    console.log("Uploading version "+thisVersion+"...");
-
-    let body = `## [${thisVersion}] - ${new Date().getFullYear()}-${new Date().getMonth()}-${new Date().getDate()}`;
-    return new Promise((accept, reject) => {
-        ghRelease({
-                auth: {
-                    token: pass
-                },
-                tag_name: thisVersion,
-                name: thisVersion,
-                body: body,
-                assets: files
-            },
-            (err, result) => {
-                if (!err) {
-                    accept(result)
-                } else {
-                    reject(err)
-                }
-            })
-    })
+const githubRelease = async (thisVersion, user, pass, files) => {
+    await grizzly(pass, {
+        user: user,
+        repo: name,
+        tag: thisVersion.version,
+        name: thisVersion.version,
+        body: 'THIS IS A TEST',
+        prerelease: thisVersion.preRelase
+    });
+    for (let index = 0; index < files.length; index++) {
+        const file = files[index];
+        await putasset(pass, {
+            user: user,
+            repo: name,
+            tag: thisVersion.version,
+            filename:file
+        })
+    }
 }
+// const uploadGithub = (thisVersion, pass, files) => {
+//     console.log("Uploading version " + thisVersion + "...");
+
+//     let body = `## [${thisVersion}] - ${new Date().getFullYear()}-${new Date().getMonth()}-${new Date().getDate()}`;
+//     return new Promise((accept, reject) => {
+//         ghRelease({
+//                 auth: {
+//                     token: pass
+//                 },
+//                 tag_name: thisVersion,
+//                 name: thisVersion,
+//                 body: body,
+//                 assets: files
+//             },
+//             (err, result) => {
+//                 if (!err) {
+//                     accept(result)
+//                 } else {
+//                     reject(err)
+//                 }
+//             })
+//     })
+// }
 
 const getVersion = async (user, pass) => {
     console.log("Creating new version...");
     const octokit = new Octokit({
         auth: pass,
     });
-    const {data:{tag_name}} = await octokit.repos.getLatestRelease({owner:user,repo:name});
-    let versionPrefix = version.split('.').slice(0,-1).join(".")+".";
-    let latestVersionPrefix = tag_name.split('.').slice(0,-1).join(".")+".";
-    if(latestVersionPrefix!==versionPrefix){
-        return versionPrefix+0;
-    }else{
+    const {
+        data: {
+            tag_name
+        }
+    } = await octokit.repos.getLatestRelease({
+        owner: user,
+        repo: name
+    });
+    let versionPrefix = version.split('.').slice(0, -1).join(".") + ".";
+    let latestVersionPrefix = tag_name.split('.').slice(0, -1).join(".") + ".";
+    if (latestVersionPrefix !== versionPrefix) {
+        return {version:(versionPrefix + 0), preRelase:false};
+    } else {
         let latestVersionSufix = Number(tag_name.split('.').pop());
-        return versionPrefix+(latestVersionSufix+1);
+        return {version:(versionPrefix + (latestVersionSufix + 1) + 0), preRelase:false};
     }
 
 }
@@ -134,7 +162,8 @@ const publish = async () => {
     let pass = argv.pass;
     let files = await build();
     let thisVersion = await getVersion(user, pass);
-    console.log(await uploadGithub(thisVersion, pass, files));
+    releaseIt()
+    await githubRelease(thisVersion, user, pass, files);
 }
 
 const main = async () => {
