@@ -1,6 +1,6 @@
 {
   "name": "pluridb-dev",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "PluriDB is a database for web that works on top of IndexedDB and supports multiple fallbacks and syntaxis",
   "main": "index.js",
   "scripts": {
@@ -29,11 +29,12 @@
     "@octokit/rest": "^18.0.12",
     "chokidar": "^3.4.3",
     "eslint": "^7.15.0",
-    "gh-release": "^4.0.4",
+    "grizzly": "^4.0.3",
     "minimist": "^1.2.5",
     "mocha": "^8.2.1",
     "mocha-junit-reporter": "^2.0.0",
     "node-static": "^0.7.11",
+    "putasset": "^5.0.3",
     "terser-webpack-plugin": "^5.0.3",
     "webpack": "^5.10.3",
     "webpack-dev-server": "^3.11.0"
