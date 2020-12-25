@@ -176,7 +176,7 @@
         "quote-props": ["warn", "as-needed"],
         "quotes": ["warn", "single", { "avoidEscape": true, "allowTemplateLiterals": false }],
         "rest-spread-spacing": ["warn", "never"],
-        "semi": ["warn", "never"],
+        "semi": ["warn", "always"],
         "semi-spacing": ["warn", { "before": false, "after": true }],
         "space-before-blocks": ["warn", "always"],
         "space-before-function-paren": ["warn", "always"],
