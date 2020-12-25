@@ -12,7 +12,7 @@ const {
     Octokit
 } = require('@octokit/rest')
 
-const version = '0.1.0-x'
+const version = '0.1.0'
 const name = 'PluriDB'
 const runner = (config) => {
     return new Promise((res, rej) => {
