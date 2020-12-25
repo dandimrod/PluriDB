@@ -1,110 +1,112 @@
-const webpack = require('webpack');
-const webpackConfig = require('./webpack.config');
-const fs = require('fs');
-const argv = require('minimist')(process.argv.slice(3));
-var static = require('node-static');
-const chokidar = require('chokidar');
-const path = require("path");
-const grizzly = require('grizzly');
-const putasset = require('putasset');
+const webpack = require('webpack')
+const webpackConfig = require('./webpack.config')
+const fs = require('fs')
+const argv = require('minimist')(process.argv.slice(3))
+const staticNode = require('node-static')
+const chokidar = require('chokidar')
+const path = require('path')
+const grizzly = require('grizzly')
+const putasset = require('putasset')
 
 const {
     Octokit
-} = require("@octokit/rest");
+} = require('@octokit/rest')
 
-const version = "0.0.x";
-const name = "PluriDB"
+const version = '0.1.0-x'
+const name = 'PluriDB'
 const runner = (config) => {
     return new Promise((res, rej) => {
         webpack(config).run((err, stats) => {
             if (err) {
-                rej(err);
+                rej(err)
             } else {
-                res(stats);
+                res(stats)
             }
-        });
-    });
-};
+        })
+    })
+}
 const deleteFolderRecursive = function (pathFol) {
     if (fs.existsSync(pathFol)) {
         fs.readdirSync(pathFol).forEach((file) => {
-            const curPath = path.join(pathFol, file);
+            const curPath = path.join(pathFol, file)
             if (fs.lstatSync(curPath).isDirectory()) { // recurse
-                deleteFolderRecursive(curPath);
+                deleteFolderRecursive(curPath)
             } else { // delete file
-                fs.unlinkSync(curPath);
+                fs.unlinkSync(curPath)
             }
-        });
-        fs.rmdirSync(pathFol);
+        })
+        fs.rmdirSync(pathFol)
     }
-};
+}
 const copyFolderRecursiveSync = function (src, dest, cb) {
-    const exists = fs.existsSync(src);
-    const stats = exists && fs.statSync(src);
-    const isDirectory = exists && stats.isDirectory();
+    const exists = fs.existsSync(src)
+    const stats = exists && fs.statSync(src)
+    const isDirectory = exists && stats.isDirectory()
     if (isDirectory) {
-        fs.mkdirSync(dest);
+        fs.mkdirSync(dest)
         fs.readdirSync(src).forEach(function (childItemName) {
             copyFolderRecursiveSync(path.join(src, childItemName),
-                path.join(dest, childItemName), cb);
-        });
+                path.join(dest, childItemName), cb)
+        })
     } else {
-        fs.copyFileSync(src, dest);
+        fs.copyFileSync(src, dest)
         if (cb) {
-            cb(dest);
+            cb(dest)
         }
     }
-};
+}
 const serve = async () => {
-    async function serveGenerate() {
-        console.log("Building site...");
-        if (fs.existsSync("./build")) {
-            deleteFolderRecursive("./build");
+    async function serveGenerate () {
+        console.log('Building site...')
+        if (fs.existsSync('./build')) {
+            deleteFolderRecursive('./build')
         }
-        copyFolderRecursiveSync("./docs", "./build", (path) => {
-            fs.writeFileSync(path, fs.readFileSync(path, "utf-8").replace(/https:\/\/cdn\.jsdelivr\.net\/npm\/.*?@.*?\/dist\/(.*?[ "'`])/gi, './$1'));
-        });
-        await runner(webpackConfig);
+        copyFolderRecursiveSync('./docs', './build', (path) => {
+            fs.writeFileSync(path, fs.readFileSync(path, 'utf-8').replace(/https:\/\/cdn\.jsdelivr\.net\/npm\/.*?@.*?\/dist\/(.*?[ "'`])/gi, './$1'))
+        })
+        await runner(webpackConfig)
     }
-    await serveGenerate();
-    chokidar.watch('./src').on('all', serveGenerate);
-    chokidar.watch('./docs').on('all', serveGenerate);
-    let fileServer = new static.Server('./build');
+    await serveGenerate()
+    chokidar.watch('./src').on('all', serveGenerate)
+    chokidar.watch('./docs').on('all', serveGenerate)
+    const fileServer = new staticNode.Server('./build')
     require('http').createServer(function (request, response) {
         request.addListener('end', function () {
-            fileServer.serve(request, response);
-        }).resume();
-    }).listen(argv.port ? argv.port : 3007);
-    console.log("Serving dev server on port " + 3007);
-};
+            fileServer.serve(request, response)
+        }).resume()
+    }).listen(argv.port ? argv.port : 3007)
+    console.log('Serving dev server on port ' + 3007)
+}
 
 const build = async () => {
-    console.log("Building library...");
-    if (fs.existsSync("./build")) {
-        deleteFolderRecursive("./build");
+    console.log('Building library...')
+    if (fs.existsSync('./build')) {
+        deleteFolderRecursive('./build')
     }
-    await runner(webpackConfig);
-    let files = fs.readdirSync('./build');
-    files = files.map(file => './build/' + file);
-    return files;
-};
+    await runner(webpackConfig)
+    let files = fs.readdirSync('./build')
+    files = files.map(file => './build/' + file)
+    return files
+}
 
 const githubRelease = async (thisVersion, user, pass, files) => {
+    console.log('Creating a new tagged release...')
     await grizzly(pass, {
         user: user,
         repo: name,
         tag: thisVersion.version,
         name: thisVersion.version,
-        body: 'THIS IS A TEST',
+        body: `## [${thisVersion.version}] - ${new Date().getFullYear()}-${new Date().getMonth()}-${new Date().getDate()}\n### Added\n### Changed\n### Deleted\n`,
         prerelease: thisVersion.preRelase
-    });
+    })
+    console.log('Uploading new tag files...')
     for (let index = 0; index < files.length; index++) {
-        const file = files[index];
+        const file = files[index]
         await putasset(pass, {
-            user: user,
+            owner: user,
             repo: name,
             tag: thisVersion.version,
-            filename:file
+            filename: file
         })
     }
 }
@@ -133,55 +135,71 @@ const githubRelease = async (thisVersion, user, pass, files) => {
 // }
 
 const getVersion = async (user, pass) => {
-    console.log("Creating new version...");
+    console.log('Creating new version...')
+    let newVersion
+    let isPrerelease
     const octokit = new Octokit({
-        auth: pass,
-    });
-    const {
-        data: {
-            tag_name
+        auth: pass
+    })
+    if (version.split('-')[1]) {
+        isPrerelease = true
+        const { data } = await octokit.repos.listReleases({
+            owner: user,
+            repo: name
+        })
+        const tagName = data[0].tag_name
+        if (tagName.split('-')[1] && version.split('-')[0] === tagName.split('-')[0]) {
+            newVersion = version.split('-')[0] + '-' + (Number(tagName.split('-')[1]) + 1)
+        } else {
+            newVersion = version.split('-')[0] + '-0'
         }
-    } = await octokit.repos.getLatestRelease({
-        owner: user,
-        repo: name
-    });
-    let versionPrefix = version.split('.').slice(0, -1).join(".") + ".";
-    let latestVersionPrefix = tag_name.split('.').slice(0, -1).join(".") + ".";
-    if (latestVersionPrefix !== versionPrefix) {
-        return {version:(versionPrefix + 0), preRelase:false};
     } else {
-        let latestVersionSufix = Number(tag_name.split('.').pop());
-        return {version:(versionPrefix + (latestVersionSufix + 1) + 0), preRelase:false};
+        isPrerelease = false
+        const {
+            data: {
+                tag_name: tagName
+            }
+        } = await octokit.repos.getLatestRelease({
+            owner: user,
+            repo: name
+        })
+        const versionPrefix = version.split('.').slice(0, -1).join('.') + '.'
+        const latestVersionPrefix = tagName.split('.').slice(0, -1).join('.') + '.'
+        if (latestVersionPrefix !== versionPrefix) {
+            newVersion = (versionPrefix + 0)
+        } else {
+            const latestVersionSufix = Number(tagName.split('.').pop())
+            newVersion = (versionPrefix + (latestVersionSufix + 1))
+        }
     }
-
+    return { version: newVersion, preRelase: isPrerelease }
 }
 
 const publish = async () => {
-    console.log("Starting publishing procedure...");
-    let user = argv.user;
-    let pass = argv.pass;
-    let files = await build();
-    let thisVersion = await getVersion(user, pass);
-    releaseIt()
-    await githubRelease(thisVersion, user, pass, files);
+    console.log('Starting publishing procedure...')
+    const user = argv.user
+    const pass = argv.pass
+    const files = await build()
+    const thisVersion = await getVersion(user, pass)
+    await githubRelease(thisVersion, user, pass, files)
 }
 
 const main = async () => {
-    console.log("Welcome to PluriDB development util");
+    console.log('Welcome to PluriDB development util')
     switch (process.argv[2]) {
-        case "serve":
-            await serve();
-            break;
+        case 'serve':
+            await serve()
+            break
 
-        case "build":
-            await build();
-            break;
-        case "publish":
-            await publish();
-            break;
+        case 'build':
+            await build()
+            break
+        case 'publish':
+            await publish()
+            break
         default:
-            break;
+            break
     }
-};
+}
 
-main();
+main()
