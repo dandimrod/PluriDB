@@ -1,0 +1,200 @@
+main {
+    scroll-snap-type: both mandatory;
+    overflow: auto;
+    width: 100%;
+    height: 95vh;
+    scroll-behavior: smooth;
+}
+
+.page {
+    scroll-snap-align: start;
+    position: relative;
+    width: 100%;
+    height: 95vh;
+    overflow: hidden;
+}
+a{
+    color:black;
+}
+pre{
+    background-color: black;
+    color: white;
+    font-size: 2vh;
+    margin: 0;
+    padding: 10px;
+    text-align: left;
+}
+
+.text-container {
+    padding: 2vh;
+    font-size: 5vh;
+    position: absolute;
+    top: 0;
+    width: calc(100% - 4vh);
+    height: 91vh;
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    text-align: center;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-areas: '. . . . .' '. . top . .''. . . . .''left left center right right''. . . . .''. bottom bottom bottom .''. scroll scroll scroll .';
+    animation: noExist 3s linear, fadeIn 2s linear 3s;
+    z-index: 10;
+}
+.text-container>.top {
+    grid-area: top;
+}
+
+.text-container>.center {
+    grid-area: center;
+}
+
+.text-container>.top>img {
+    height: 5vh;
+    width: 5vh;
+}
+
+.text-container>.bottom {
+    grid-area: bottom;
+}
+
+.text-container>.left {
+    grid-area: left;
+}
+
+.text-container>.right {
+    grid-area: right;
+}
+
+.text-container>.scroll {
+    grid-area: scroll;
+    font-size: 2vh;
+}
+#page-2>.text-container, #page-3>.text-container, #page-4>.text-container{
+    grid-template-areas: '. . . . .' '. top top top .''. . . . .''left left center right right''. . . . .''. bottom bottom bottom .''. scroll scroll scroll .';
+}
+@media (max-width: 600px) {
+    .text-container {
+        grid-template-areas: '. top top top .''. left left left .''. . center . .''. right right right .''bottom bottom bottom bottom bottom''. scroll scroll scroll .';
+        font-size: 4vh;
+        grid-template-rows: 2fr 1fr 1fr 1fr 1fr 1fr;
+    }
+    .code{
+        max-width: 100vw;
+        overflow: auto;
+        background-color: black;
+    }
+    pre{
+        font-size: 15px;
+    }
+    #page-2>.text-container, #page-3>.text-container, #page-4>.text-container{
+        grid-template-areas: 'top top top top top''. left left left .''. right right right .''bottom bottom bottom bottom bottom''. scroll scroll scroll .';
+        font-size: 4vh;
+        grid-template-rows: 2fr 1fr 1fr 1fr 1fr;
+    }
+}
+.roulette {
+    overflow: hidden;
+    height: 8vh;
+}
+
+.roulette-options {
+    display: grid;
+    height: max-content;
+    grid-auto-flow: row;
+    grid-auto-rows: 8vh;
+    gap: 1vh;
+    transform: translate3d(0, 0, 0);
+    animation: moveSlideshow 8s linear infinite;
+}
+
+.roulette-options>div {
+    background: rgb(124, 190, 223);
+    padding: 1vh;
+    text-align: center;
+    font-size: 5vh;
+}
+
+.roulette-options.right {
+    animation: moveSlideshowReverse 8s linear infinite;
+    transform: translateY(-82%);
+
+}
+
+.roulette-options.right>div {
+    background: rgb(231, 188, 124);
+}
+
+.background {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 95vh;
+}
+
+.background.left {
+    background: linear-gradient(139deg, rgba(81, 176, 223, 1) 0%, rgba(81, 176, 223, 1) 48%, rgba(255, 255, 255, 0) 48%, rgba(255, 255, 255, 0) 52%, rgba(230, 167, 74, 0) 52%, rgba(230, 167, 74, 0) 100%);
+    animation: fadeInLeft ease-in-out 3s;
+}
+
+.background.right {
+    background: linear-gradient(139deg, rgba(81, 176, 223, 0) 0%, rgba(81, 176, 223, 0) 48%, rgba(255, 255, 255, 0) 48%, rgba(255, 255, 255, 0) 52%, rgba(230, 167, 74, 1) 52%, rgba(230, 167, 74, 1) 100%);
+    animation: fadeInRight ease-in-out 3s;
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translate3d(400vw, 0, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes noExist {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes moveSlideshow {
+    100% {
+        transform: translateY(-82%);
+    }
+}
+
+@keyframes moveSlideshowReverse {
+    100% {
+        transform: translateY(0%);
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translate3d(-300vw, 0, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
