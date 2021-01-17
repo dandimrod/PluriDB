@@ -1,7 +1,150 @@
-<nav id="nav"></nav>
-<script src="static/js/nav.js"></script>
-<link rel="stylesheet" href="static/css/nav.css">
-<link rel="stylesheet" href="static/css/style.css">
-<script>
-    new Nav('/')
-</script>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PluriDB</title>
+    <link rel="shortcut icon" href="static/img/PluriDB.svg" type="image/x-icon">
+    <script src="static/js/nav.js"></script>
+    <link rel="stylesheet" href="static/css/nav.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/index.css">
+</head>
+<body>
+    <nav id="nav"></nav>
+    <main>
+        <section id="page-1" class="page">
+            <div class="background left"></div>
+            <div class="background right"></div>
+            <div class="text-container">
+                <div class="top">
+                    <img alt="icon" src="static/img/PluriDB.svg">&nbsp;PluriDB
+                </div>
+                <div class="roulette right">
+                    <div class="roulette-options right">
+                        <div>Browser</div>
+                        <div>React</div>
+                        <div>Angular</div>
+                        <div>Node</div>
+                        <div>Browser</div>
+                    </div>
+                </div>
+                <div class="center">
+                    on
+                </div>
+                <div class="roulette left">
+                    <div class="roulette-options">
+                        <div>SQL</div>
+                        <div>MongoDB</div>
+                        <div>JSON</div>
+                        <div>GraphQL</div>
+                        <div>SQL</div>
+                    </div>
+                </div>
+                <div class="bottom">
+                    The <b>flexible</b> database for your frontend
+                </div>
+                <div class="scroll">
+                    Scroll down to see more...
+                    <br/>
+                    &#x2913;
+                </div>
+            </div>
+        </section>
+        <section class="page" id="page-2">
+            <div class="background left"></div>
+            <div class="text-container">
+                <div class="top">Use the syntax that you already know</div>
+                <div class="right">
+                    <div class="code">
+                        <pre>
+pluriDB.modules.sql(
+    `Select * from students where age = 4`
+);</pre>
+                    </div>
+                    SQL
+                </div>
+                <div class="left">
+                    <div class="code">
+                        <pre>
+pluriDB.modules.mongo.students.find({
+    "age " :  4
+});</pre>
+                    </div>
+                   MongoDB
+                </div>
+                <div class="bottom">You can even use them <b>interchangeably</b>!</div>
+                <div class="scroll">
+                    Scroll down to see more...
+                    <br/>
+                    &#x2913;
+                </div>
+            </div>
+        </section>
+        <section class="page" id="page-3">
+            <div class="background right"></div>
+            <div class="text-container">
+                <div class="top">Use it on your browser or in node</div>
+                <div class="left">
+                    <div class="code">
+                        <pre>
+npm i PluriDB
+npm i pdbm-mongodb
+npm i pdbm-sql</pre>
+                    </div>
+                    <a href="https://www.npmjs.com/package/PluriDB">NPM</a>
+                </div>
+                <div class="right">
+                    <div class="code">
+                        <pre>
+https://cdn.jsdelivr.net/npm/PluriDB@latest/
+https://cdn.jsdelivr.net/npm/pdbm-mongodb@latest/
+https://cdn.jsdelivr.net/npm/pdbm-sql@latest/</pre>
+                    </div>
+                    <a href="https://www.jsdelivr.com/package/npm/PluriDB">CDN</a>
+                </div>
+                <div class="bottom">
+                    You can also download it directly from <a href="https://github.com/dandimrod/PluriDB/releases">source</a>
+                </div>
+                <div class="scroll">
+                    Scroll down to see more...
+                    <br/>
+                    &#x2913;
+                </div>
+            </div>
+        </section>
+        <section class="page" id="page-4">
+            <div class="background left"></div>
+            <div class="background right"></div>
+            <div class="text-container">
+                <div class="top">
+                    Easy to use
+                </div>
+                <div class="left">
+                    <div class="code">
+                        <pre>
+const PluriDB require('PluriDB');
+const mongoModule require('pdbm-mongodb');
+PluriDB.loadModule(mongoModule);</pre>
+                    </div>
+                    Load the modules
+                </div>
+                <div class="right">
+                    <div class="code">
+                        <pre>
+const pluriDB = new PluriDB('test');
+pluriDb.modules.mongodb.student.insert({ name:"Jhon", age:12 });
+pluriDb.modules.mongodb.student.find({ "age " :  4 });</pre>
+                    </div>
+                    And start the database
+                </div>
+                <div class="bottom">For more information visit our <a href="/demo">live demo</a> or our <a href="/docs">documentation</a></div>
+                <div class="scroll">Made by <a href="https://dandimrod.dev/">@dandimrod</a></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        new Nav('/');
+    </script>
+</body>
+</html>

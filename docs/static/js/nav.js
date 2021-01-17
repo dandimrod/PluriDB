@@ -72,7 +72,7 @@
             tabMenu.appendChild(navIcon);
             const navTray = document.createElement('div');
             navTray.className = 'nav-tray';
-            document.body.appendChild(navTray);
+            tabNav.parentNode.insertBefore(navTray, tabNav.nextSibling);
             for (let index = 0; index < sections.length; index++) {
                 const section = sections[index];
                 if (section.hidden) {
