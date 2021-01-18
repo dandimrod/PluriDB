@@ -914,4 +914,8 @@ function PluriDB (dbName, userOptions) {
     return result;
 }
 
+PluriDB.loadModule = function (module) {
+// Placeholder function
+};
+
 module.exports = PluriDB;
