@@ -1,7 +1,40 @@
-<nav id="nav"></nav>
-<script src="../static/js/nav.js"></script>
-<link rel="stylesheet" href="../static/css/nav.css">
-<link rel="stylesheet" href="../static/css/style.css">
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PluriDB Demo</title>
+    <link rel="shortcut icon" href="../static/img/PluriDB.svg" type="image/x-icon">
+    <script src="../static/js/nav.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/monaco-editor@0.19.3/min/vs/loader.js"></script>
+    <link rel="stylesheet" href="../static/css/demo.css">
+    <link rel="stylesheet" href="../static/css/nav.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+
+<body>
+    <nav id="nav"></nav>
+    <main>
+        <section class="code-container">
+            <h3 class="section-title">Code</h3>
+            <select id="code-select" disabled></select>
+            <div id="code"></div>
+            <button id="submit-code" disabled>Submit data</button>
+        </section>
+        <section class="output-container">
+            <h3 class="section-title">Output</h3>
+            <div id="output"></div>
+            <button id="clear-output" disabled>Clear output</button>
+        </section>
+        <section class="table-inspector-container">
+            <h3 class="section-title">Table Inspector</h3>
+            <div id="table-list"></div>
+            <div id="table-inspector"></div>
+        </section>
+    </main>
+</body>
 <script>
-    new Nav('/demo/')
+    new Nav('/demo/');
 </script>
+<script src="../static/js/demo.js"></script>
+</html>

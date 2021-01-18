@@ -2,10 +2,10 @@ const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
-    mode: "development",
+    mode: 'development',
     entry: {
-        'PluriDB': "./src",
-        'PluriDB.mongodb.module': "./src/modules/mongodb"
+        PluriDB: './src',
+        pdbm_mongodb: './src/modules/mongodb'
     },
     output: {
         path: path.resolve(__dirname, 'build'),
@@ -29,5 +29,5 @@ module.exports = {
                 }
             })
         ]
-    },
+    }
 };

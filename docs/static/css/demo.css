@@ -1,0 +1,59 @@
+main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    grid-template-areas: 'code code' 'output tables';
+    height: calc(95vh - 10px);
+    gap: 5px;
+    margin: 5px;
+}
+section{
+    display:grid;
+    gap: 5px;
+}
+.code-container{
+    grid-area: code;
+    grid-template-rows: auto 2em 1fr 2em;
+}
+
+.output-container{
+    grid-area: output;
+    grid-template-rows: auto 1fr 2em;
+}
+
+.table-inspector-container{
+    grid-area: tables;
+    grid-template-rows: auto 8.4em 1fr;
+    display: relative;
+}
+
+#table-list{
+    display: grid;
+    grid-auto-rows: 2em;
+    gap: 0.1em;
+    overflow: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: both mandatory;
+}
+
+#table-list>button{
+    scroll-snap-align: start;
+}
+
+@media (max-width: 600px) {
+    main {
+        grid-template-columns: 1fr;
+        grid-template-rows: calc(95vh - 10px) calc(95vh - 10px) calc(95vh - 10px);
+        grid-template-areas: 'code' 'output' 'tables';
+        gap: 0;
+        margin: 0;
+        scroll-behavior: smooth;
+        scroll-snap-type: both mandatory;
+        height: calc(95vh - 10px);
+        overflow: auto;
+    }
+    section{
+        margin: 5px;
+        scroll-snap-align: start;
+    }
+}

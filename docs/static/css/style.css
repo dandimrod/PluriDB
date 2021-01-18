@@ -19,3 +19,48 @@ body {
     box-shadow: none !important;
     background-color: transparent;
 }
+
+button {
+    background-color: white;
+    border: 2px solid;
+    border-image-source: linear-gradient(139deg, rgba(81, 176, 223, 1) 0%, rgba(81, 176, 223, 1) 50%, rgba(230, 167, 74, 1) 50%, rgba(230, 167, 74, 1) 100%);
+    border-image-slice: 1;
+    position: relative;
+    transition: color 250ms ease-in-out;
+    font-family: 'Open Sans', sans-serif;
+}
+
+button::before,button::after { 
+    position: absolute;
+    display:block;
+    content: '';
+    transform: scaleX(0);  
+    transition: transform 250ms ease-in-out;
+    height: 100%;
+    width: 100%;
+    top:0;
+    left:0;
+    z-index: -1;
+}
+button::before{
+    background: linear-gradient(139deg, rgba(81, 176, 223, 1) 0%, rgba(81, 176, 223, 1) 50%, rgba(255, 255, 255, 0) 48%, rgba(255, 255, 255, 0) 52%, rgba(230, 167, 74, 0) 52%, rgba(230, 167, 74, 0) 100%);
+    transform-origin:  0% 50%; 
+}
+button::after{
+    background: linear-gradient(139deg, rgba(81, 176, 223, 0) 0%, rgba(81, 176, 223, 0) 50%, rgba(255, 255, 255, 0) 48%, rgba(255, 255, 255, 0) 50%, rgba(230, 167, 74, 1) 50%, rgba(230, 167, 74, 1) 100%);
+    transform-origin:100% 50%;
+}
+button:hover{
+    background-color: transparent;
+    color:white;
+}
+button:hover::before, button:hover::after{  
+    transform: scaleX(1);
+}
+
+select{
+    font-family: 'Open Sans', sans-serif;
+    border: 2px solid;
+    border-image-source: linear-gradient(139deg, rgba(81, 176, 223, 1) 0%, rgba(81, 176, 223, 1) 50%, rgba(230, 167, 74, 1) 50%, rgba(230, 167, 74, 1) 100%);
+    border-image-slice: 1;
+}
