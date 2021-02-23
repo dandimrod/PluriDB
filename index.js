@@ -9,7 +9,7 @@ const grizzly = require('grizzly');
 const putasset = require('putasset');
 const { Octokit } = require('@octokit/rest');
 
-const version = '0.2.x';
+const version = '0.3.0-x';
 const name = 'PluriDB';
 const runner = (config) => {
     return new Promise((res, rej) => {
@@ -59,7 +59,9 @@ const serve = async () => {
             deleteFolderRecursive('./build');
         }
         copyFolderRecursiveSync('./docs', './build', (path) => {
-            fs.writeFileSync(path, fs.readFileSync(path, 'utf-8').replace(/https:\/\/cdn\.jsdelivr\.net\/npm\/.*?@.*?\/dist\/(.*?[ "'`])/gi, './$1'));
+            if (path.endsWith('static/js/demo.js')) {
+                fs.writeFileSync(path, fs.readFileSync(path, 'utf-8').replace('const isProduction = true;', 'const isProduction = false;'));
+            }
         });
         await runner(webpackConfig);
     }
@@ -93,7 +95,7 @@ const githubRelease = async (thisVersion, user, pass, files) => {
         repo: name,
         tag: thisVersion.version,
         name: thisVersion.version,
-        body: `## [${thisVersion.version}] - ${new Date().getFullYear()}-${new Date().getMonth()}-${new Date().getDate()}\n### Added\n### Changed\n### Deleted\n`,
+        body: `## [${thisVersion.version}] - ${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}\n### Added\n### Changed\n### Deleted\n`,
         prerelease: thisVersion.preRelase
     });
     console.log('Uploading new tag files...');

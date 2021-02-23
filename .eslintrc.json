@@ -115,7 +115,6 @@
         "no-multi-str": "warn",
         "no-multiple-empty-lines": ["warn", { "max": 1, "maxEOF": 0 }],
         "no-new": "warn",
-        "no-new-func": "warn",
         "no-new-object": "warn",
         "no-new-symbol": "warn",
         "no-new-wrappers": "warn",

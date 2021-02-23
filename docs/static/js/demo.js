@@ -1,4 +1,4 @@
-const isProduction = false;
+const isProduction = true;
 const modules = [
     { moduleName: 'pdbm_mongodb', pro: '', dev: '../pdbm_mongodb.js' },
     { pro: '', dev: '../PluriDB.js' }
@@ -116,13 +116,15 @@ async function loadScripts () {
 function loadModules () {
     for (let index = 0; index < modules.length; index++) {
         const module = modules[index];
-        PluriDB.loadModule(window[module.name]);
+        if (module.moduleName) {
+            PluriDB.loadModule(window[module.moduleName]);
+        }
     }
 }
 
 function setupDatabase () {
     return new PluriDB('demo', {
-
+        worker: false
     });
 }
 
