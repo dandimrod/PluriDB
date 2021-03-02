@@ -1,4 +1,9 @@
-function Database (database, options) {
+function Database (dbName, options, storage) {
+    let db;
+    let transaction;
+    let errorOnTransaction = false;
+    let baker;
+
     function Baker (secret) {
         // Credits to https://gist.github.com/rafaelsq/5af573af7e2d763869e2f4cce0a8357a
         const hexToBuf = hex => {
@@ -145,13 +150,130 @@ function Database (database, options) {
     function commit () {
         if (!transaction) {
             if (options.backup) {
-                returnDb.exportDb().then((data) => {
-                    postMessage({ backup: data });
-                });
+                backup(dbName, db);
             }
             dbUtils.save();
         }
     }
+    async function initDB (options) {
+        async function selectDB () {
+            let databaseStorage;
+            try {
+                databaseStorage = JSON.parse(await baker.decompress(await storage.load(dbName)));
+            } catch (error) {
+                console.warn('The database in storage has not loaded properly: ' + error.message);
+            }
+            if (!options.restore) {
+                return databaseStorage;
+            }
+            let databaseRestore;
+            try {
+                databaseRestore = JSON.parse(await baker.decompress(await restore.restore(dbName)));
+            } catch (error) {
+                console.warn('The database in backup has not loaded properly: ' + error.message);
+            }
+            if (!databaseRestore && databaseStorage) {
+                return databaseStorage;
+            }
+            if (databaseRestore && !databaseStorage) {
+                return databaseStorage;
+            }
+            if (databaseRestore && databaseStorage) {
+                let timeStorage = new Date(0);
+                try {
+                    timeStorage = new Date(databaseStorage.m.ts);
+                } catch (error) {
+                }
+                let timeRestore = new Date(0);
+                try {
+                    timeRestore = new Date(databaseRestore.m.ts);
+                } catch (error) {
+                }
+                if (timeStorage > timeRestore) {
+                    return databaseStorage;
+                }
+                if (timeRestore >= timeStorage) {
+                    return databaseRestore;
+                }
+            } else {
+                return false;
+            }
+        }
+        baker = new Baker(options.encrypt);
+        const database = await selectDB();
+
+        if (!database) {
+            db = {
+            // tables
+                t: {},
+                // metadata
+                m: {
+                // Timestamp
+                    ts: new Date()
+                }
+            };
+        } else {
+            db = database;
+        }
+    }
+    function transactionizeApi (returnDB) {
+        const whitelist = ['init', 'updateOptions', 'restore', 'endTransaction', 'checkTransaction', 'sendError'];
+        const returnApi = {};
+        for (const name in returnDB) {
+            if (Object.hasOwnProperty.call(returnDB, name)) {
+                const api = returnDB[name];
+                if (typeof api === 'function') {
+                    if (whitelist.includes(name)) {
+                        returnApi[name] = api;
+                    } else {
+                        returnApi[name] = function (...args) {
+                            let response = preProccesing();
+                            if (response) {
+                                return response;
+                            }
+                            try {
+                                response = api(...args);
+                            } catch (error) {
+                                response = errorHandler(error);
+                            }
+                            return response;
+                        };
+                    }
+                } else {
+                    returnApi[name] = transactionizeApi(api);
+                }
+            }
+        }
+        return returnApi;
+    }
+    function preProccesing () {
+        return checkTransaction();
+    }
+    function errorHandler (error) {
+        endedOnError();
+        return { error: `Error executing the query: ${error.message}` };
+    }
+    async function backup (key, data) {
+        data = await baker.compress(JSON.stringify(data));
+        postMessage({ type: 'backup', backup: data, backupKey: key });
+    }
+    const restore = (function () {
+        let id = 0;
+        const calls = {};
+        function restore (key) {
+            return new Promise((resolve) => {
+                postMessage({ type: 'restore', restoreKey: key, id });
+                calls[id] = (data) => resolve(data);
+                id++;
+            });
+        }
+        function callback (data) {
+            calls[data.id](data.response);
+            delete calls[data.id];
+        }
+        return { restore, callback };
+    })();
+
     function checkTransaction () {
         if (transaction && errorOnTransaction) {
             return { error: 'Transaction Failed' };
@@ -162,6 +284,7 @@ function Database (database, options) {
             errorOnTransaction = true;
         }
     }
+
     function checkConstraints (columnConstraints, data) {
         for (const column in data) {
             if (Object.prototype.hasOwnProperty.call(data, column)) {
@@ -225,30 +348,10 @@ function Database (database, options) {
             return securized.apply({}, variables);
         };
     }
-    let db;
-    let transaction;
-    let errorOnTransaction = false;
-    let baker = new Baker(options.encrypt);
-    if (!database) {
-        db = {
-            // tables
-            t: {},
-            // metadata
-            m: {
-                // Timestamp
-                ts: new Date()
-            }
-        };
-        dbUtils.loaded = true;
-    } else {
-        baker.decompress(database).then((data) => {
-            db = JSON.parse(data);
-            dbUtils.loaded = true;
-        });
-    }
+
     const returnDb = {
-        exportDb: async function () {
-            return await baker.compress(JSON.stringify(db));
+        init: function () {
+            initDB(options);
         },
         updateOptions: function (newOptions) {
             options = { options, ...newOptions };
@@ -256,11 +359,11 @@ function Database (database, options) {
             commit();
             return { message: 'Options updated' };
         },
+        restore: function (data) {
+            restore.callback(data);
+        },
         tables: {
             getTable: function (name) {
-                if (checkTransaction()) {
-                    return checkTransaction();
-                }
                 if (!db.t[name]) {
                     endedOnError();
                     return { error: 'Table ' + name + ' does not exist' };
@@ -269,15 +372,9 @@ function Database (database, options) {
                 return { columns: table.c, parents: table.p, descendants: table.d, keys: table.k, metadata: table.m };
             },
             getTables: function () {
-                if (checkTransaction()) {
-                    return checkTransaction();
-                }
                 return { result: Object.keys(db.t) };
             },
             createTable: function (name, columns) {
-                if (checkTransaction()) {
-                    return checkTransaction();
-                }
                 if (db.t[name]) {
                     endedOnError();
                     return { error: 'Table ' + name + ' already exists' };
@@ -320,9 +417,6 @@ function Database (database, options) {
                 return { message: 'Table ' + name + ' created' };
             },
             deleteTable: function (name) {
-                if (checkTransaction()) {
-                    return checkTransaction();
-                }
                 if (!db.t[name]) {
                     return { warn: 'Table ' + name + ' does not exist' };
                 }
@@ -338,16 +432,10 @@ function Database (database, options) {
                 return { message: 'Table ' + name + ' was dropped succesfully' };
             },
             alterTable: function () {
-                if (checkTransaction()) {
-                    return checkTransaction();
-                }
             }
         },
         data: {
             getData: function (table, filter, tree) {
-                if (checkTransaction()) {
-                    return checkTransaction();
-                }
                 if (!db.t[table]) {
                     endedOnError();
                     return { error: 'Table ' + name + ' does not exist' };
@@ -365,9 +453,6 @@ function Database (database, options) {
                 return { result: returned };
             },
             createData: function (table, data) {
-                if (checkTransaction()) {
-                    return checkTransaction();
-                }
                 if (!db.t[table]) {
                     endedOnError();
                     return { error: 'Table ' + name + ' does not exist' };
@@ -390,9 +475,6 @@ function Database (database, options) {
                 return { message: 'Data inserted' };
             },
             deleteData: function (table, filter, tree) {
-                if (checkTransaction()) {
-                    return checkTransaction();
-                }
                 if (!db.t[table]) {
                     endedOnError();
                     return { error: 'Table ' + name + ' does not exist' };
@@ -415,9 +497,6 @@ function Database (database, options) {
                 return { message: 'Deleted ' + Object.keys(toBeDeleted).length + ' rows' };
             },
             updateData: function (table, data, filter, tree) {
-                if (checkTransaction()) {
-                    return checkTransaction();
-                }
                 if (!db.t[table]) {
                     endedOnError();
                     return { error: 'Table ' + name + ' does not exist' };
@@ -449,9 +528,6 @@ function Database (database, options) {
         },
         utils: {
             startTransaction: function () {
-                if (checkTransaction()) {
-                    return checkTransaction();
-                }
                 if (transaction) {
                     return { warn: 'Already on a transaction' };
                 } else {
@@ -481,6 +557,7 @@ function Database (database, options) {
             checkTransaction
         }
     };
-    return returnDb;
+
+    return transactionizeApi(returnDb);
 }
 module.exports = Database;

@@ -36,37 +36,4 @@ function Parser (database, modules) {
     return parse;
 }
 
-// const parserModules = (function (modules) {
-//     const result = {
-//         loaded: false
-//     };
-//     const parserModules = {
-//         default: function (target, method, ...args) {
-//             if (target !== 'tables' || target !== 'data' || target !== 'utils') {
-//                 return { error: 'Operation not supported' };
-//             }
-//             if (!db[target][method]) {
-//                 return { error: 'Operation not supported' };
-//             }
-//             return db[target][method](...args);
-//         }
-//     };
-//     result.modules = parserModules;
-//     return result;
-// }(options.modules));
-
-// function masterParser (data) {
-//     if (dbUtils.loaded && parserModules.loaded) {
-//         if (parserModules.modules[data.typeQuery]) {
-//             postMessage({ id: data.id, response: parserModules.modules[data.typeQuery](...data.querys) });
-//         } else {
-//             postMessage({ id: data.id, error: 'Module ' + data.typeQuery + ' is not imported' });
-//         }
-//     } else {
-//         setTimeout(() => {
-//             masterParser(data);
-//         }, 500);
-//     }
-// }
-
 module.exports = Parser;

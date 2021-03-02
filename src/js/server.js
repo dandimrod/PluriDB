@@ -2,10 +2,11 @@ function Server (Storage, Parser, Database) {
     return function (dbName, options, modules) {
         let database;
         let parser;
-        function main () {
+        async function main () {
             const storage = Storage(dbName, options.storage, options.fallback, modules.storage);
-            database = Database(dbName, options, storage);
+            database = Database(dbName, options.db, storage);
             parser = Parser(database, modules.parser);
+            await database.init();
         }
         main();
         async function messageHandler (e) {
