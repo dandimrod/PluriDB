@@ -47,15 +47,56 @@ function PluriDB (dbName, userOptions, callback) {
     db.callbacks = [];
 
     // Initalization of worker
-    if (typeof (Worker) !== 'undefined' && options.worker) {
-        db.worker = new Worker(URL.createObjectURL(new Blob([`( ${db.server.toString().split("'start no worker'")[0]}
-        onmessage = messageHandler;
-        }})
-        (${require('./js/storage').toString()}, ${require('./js/parser').toString()}, ${require('./js/database').toString()})
-        ("${dbName}", ${JSON.stringify(options)}, ${JSON.stringify(PluriDB.modules, (data, val) => typeof val === 'function' ? val.toString() : val)})`], { type: 'text/javascript' })));
-    } else {
-        db.worker = db.server(require('./js/storage'), require('./js/parser'), require('./js/database'))(dbName, options, PluriDB.modules);
-    }
+    // if (typeof (Worker) !== 'undefined' && options.worker) {
+    //     db.worker = new Worker(URL.createObjectURL(new Blob([`( ${db.server.toString().split("'start no worker'")[0]}
+    //     onmessage = messageHandler;
+    //     }})
+    //     (${require('./js/storage').toString()}, ${require('./js/parser').toString()}, ${require('./js/database').toString()})
+    //     ("${dbName}", ${JSON.stringify(options)}, ${JSON.stringify(PluriDB.modules, (data, val) => typeof val === 'function' ? val.toString() : val)})`], { type: 'text/javascript' })));
+    // } else {
+    //     db.worker = db.server(require('./js/storage'), require('./js/parser'), require('./js/database'))(dbName, options, PluriDB.modules);
+    // }
+    db.worker = (function createWorker () {
+        function supportForWorkerNode () {
+            try {
+                require('worker_threads');
+            } catch (error) {
+                return false;
+            }
+            return true;
+        }
+        let type = '';
+        if (options.worker) {
+            if (typeof (Worker) !== 'undefined') {
+                type = 'worker';
+            } else {
+                if (supportForWorkerNode()) {
+                    type = 'node';
+                }
+            }
+        }
+        let worker;
+        switch (type) {
+            case 'worker':
+                worker = new Worker(URL.createObjectURL(new Blob([`( ${db.server.toString()})
+                (${require('./js/storage').toString()}, ${require('./js/parser').toString()}, ${require('./js/database').toString()})
+                ("${dbName}", ${JSON.stringify(options)}, ${JSON.stringify(PluriDB.modules, (data, val) => typeof val === 'function' ? val.toString() : val)}, 'worker')`],
+                { type: 'text/javascript' })));
+                break;
+            case 'node': {
+                const { WorkerNode } = require('worker_threads');
+                worker = new WorkerNode(`( ${db.server.toString()})
+                (${require('./js/storage').toString()}, ${require('./js/parser').toString()}, ${require('./js/database').toString()})
+                ("${dbName}", ${JSON.stringify(options)}, ${JSON.stringify(PluriDB.modules, (data, val) => typeof val === 'function' ? val.toString() : val)}, 'node')
+                `, { eval: true });
+                break;
+            }
+            default:
+                worker = db.server(require('./js/storage'), require('./js/parser'), require('./js/database'))(dbName, options, PluriDB.modules);
+                break;
+        }
+        return worker;
+    })();
     db.worker.onmessage = function (e) {
         switch (e.data.type) {
             case 'load':

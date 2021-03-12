@@ -1,12 +1,13 @@
 function Server (Storage, Parser, Database) {
-    return function (dbName, options, modules) {
+    return function (dbName, options, modules, context) {
+        let storage;
         let database;
         let parser;
-        async function main () {
-            const storage = Storage(dbName, options.storage, options.fallback, modules.storage);
-            database = Database(dbName, options.db, storage);
-            parser = Parser(database, modules.parser);
-            await database.init();
+        let messageRelay;
+        function main () {
+            storage = Storage(dbName, options.storage, options.fallback, modules.storage);
+            database = Database(dbName, options.db, storage, messageRelay);
+            parser = Parser(database, modules.parser, messageRelay);
         }
         main();
         async function messageHandler (e) {
@@ -19,7 +20,7 @@ function Server (Storage, Parser, Database) {
                         break;
 
                     case 'updateDB':
-                        result = await database.updateOptions(e.data.updateOptions);
+                        result = await updateOptions(e.data.updateOptions);
                         break;
 
                     case 'drop':
@@ -35,24 +36,70 @@ function Server (Storage, Parser, Database) {
                         break;
                 }
                 result.id = id;
-                postMessage(result);
+                messageRelay(result);
             } catch (error) {
-                postMessage({ error: error.message, id: e.data.id });
+                messageRelay({ error: error.message, id: e.data.id });
             }
         }
-        // This only works if we are on no worker mode;
-        // eslint-disable-next-line no-unused-expressions
-        'start no worker';
-        const returnData = {
-            onmessage,
-            postMessage: function (e, ...args) {
-                messageHandler({ data: e }, ...args);
+        async function updateOptions (newOptions) {
+            try {
+                parser.loaded = false;
+                database.updateOptions(newOptions);
+                await database.init();
+                parser.loaded = true;
+                messageRelay({ type: 'load' });
+                return { message: 'Database updated succesfully' };
+            } catch (error) {
+                messageRelay({
+                    type: 'error',
+                    error: 'There was an error during the update of the database: ' + error.message
+                });
             }
+        }
+        async function initServices () {
+            try {
+                await storage.init();
+                await database.init();
+                parser.init();
+                parser.loaded = true;
+                messageRelay({ type: 'load' });
+            } catch (error) {
+                messageRelay({
+                    type: 'error',
+                    error: 'There was an error during the initialization of the database: ' + error.message
+                });
+            }
+        }
+        const init = (context) => {
+            let returnData;
+            switch (context) {
+                case 'worker': {
+                    globalThis.onmessage = messageHandler;
+                    messageRelay = postMessage;
+                    break;
+                }
+                case 'node': {
+                    const { parentPort } = require('worker_threads');
+                    parentPort.once('message', messageHandler);
+                    messageRelay = parentPort.postMessage;
+                    break;
+                }
+                default: {
+                    returnData = {
+                        onmessage,
+                        postMessage: function (e, ...args) {
+                            messageHandler({ data: e }, ...args);
+                        }
+                    };
+                    messageRelay = function (e, ...args) {
+                        returnData.onmessage({ data: e }, ...args);
+                    };
+                }
+            }
+            initServices();
+            return returnData;
         };
-        function postMessage (e, ...args) {
-            returnData.onmessage({ data: e }, ...args);
-        }
-        return returnData;
+        return init(context);
     };
 }
 

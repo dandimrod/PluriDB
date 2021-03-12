@@ -1,4 +1,4 @@
-function Database (dbName, options, storage) {
+function Database (dbName, options, storage, postMessage) {
     let db;
     let transaction;
     let errorOnTransaction = false;
@@ -355,9 +355,6 @@ function Database (dbName, options, storage) {
         },
         updateOptions: function (newOptions) {
             options = { options, ...newOptions };
-            baker = new Baker(options.encrypt);
-            commit();
-            return { message: 'Options updated' };
         },
         restore: function (data) {
             restore.callback(data);

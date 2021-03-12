@@ -44,6 +44,11 @@ async function initializeEditor () {
     };
 }
 
+function initializeOutput () {
+    window.jsonEditor = new JSONEditor(document.getElementById('output'), { modes: ['tree', 'code'] });
+    jsonEditor.set();
+}
+
 function loadExamples () {
     function loadExamplesRecursive (element, examples, previous) {
         for (const name in examples) {
@@ -95,12 +100,10 @@ function loadGUI () {
     buttonSubmit.disabled = false;
 
     const buttonClear = document.getElementById('clear-output');
-    const output = document.getElementById('output');
     buttonClear.onclick = () => {
-        output.innerHTML = '';
+        jsonEditor.set();
     };
     buttonClear.disabled = false;
-    reloadTables();
 }
 
 async function loadScripts () {
@@ -130,29 +133,31 @@ function setupDatabase () {
 
 async function main () {
     await initializeEditor();
+    initializeOutput();
     loadExamples();
     loadGUI();
     await loadScripts();
     loadModules();
     window.db = setupDatabase();
+    reloadTables();
 }
 
 main();
 
 // HELPER TRIGGERS
-function output () {
-
+function output (output) {
+    jsonEditor.set(output);
 };
 async function executeCode (codeToExecute) {
     function secureFunction (code, ...variables) {
         // https://stackoverflow.com/questions/47444376/sanitizing-eval-to-prevent-it-from-changing-any-values
-        const globals = [...variables, 'globalThis', ...Object.keys(globalThis), `return ${code};`];
+        const globals = [...variables, 'globalThis', ...Object.keys(globalThis).filter(key => !variables.includes(key)), `${code}`];
         const securized = Function.apply(null, globals);
         return function (...variables) {
             return securized.apply({}, variables);
         };
     }
-    secureFunction(codeToExecute, db, output);
+    secureFunction(codeToExecute, 'db', 'output', 'PluriDB')(window.db, output, window.PluriDB);
 }
 
 async function openTable (tableName) {
@@ -160,7 +165,7 @@ async function openTable (tableName) {
 }
 async function reloadTables () {
     const tableList = document.getElementById('table-list');
-    const tables = ['a', 'b', 'c', 'd', 'e', 'f', 'g']; // await db.m.default.getTables();
+    const tables = await db.m.default.promise.tables.getTables();
     tables.forEach(table => {
         const button = document.createElement('button');
         button.innerText = table;
