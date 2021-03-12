@@ -6,8 +6,8 @@ function Server (Storage, Parser, Database) {
         let messageRelay;
         function main () {
             storage = Storage(dbName, options.storage, options.fallback, modules.storage);
-            database = Database(dbName, options.db, storage, messageRelay);
-            parser = Parser(database, modules.parser, messageRelay);
+            database = Database(dbName, options.db, storage);
+            parser = Parser(database, modules.parser);
         }
         main();
         async function messageHandler (e) {
@@ -59,7 +59,7 @@ function Server (Storage, Parser, Database) {
         async function initServices () {
             try {
                 await storage.init();
-                await database.init();
+                await database.init(messageRelay);
                 parser.init();
                 parser.loaded = true;
                 messageRelay({ type: 'load' });

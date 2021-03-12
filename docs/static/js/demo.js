@@ -150,9 +150,10 @@ function output (output) {
 };
 async function executeCode (codeToExecute) {
     function secureFunction (code, ...variables) {
+        const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
         // https://stackoverflow.com/questions/47444376/sanitizing-eval-to-prevent-it-from-changing-any-values
         const globals = [...variables, 'globalThis', ...Object.keys(globalThis).filter(key => !variables.includes(key)), `${code}`];
-        const securized = Function.apply(null, globals);
+        const securized = AsyncFunction.apply(null, globals);
         return function (...variables) {
             return securized.apply({}, variables);
         };

@@ -1,14 +1,14 @@
-function Parser (database, modules, postMessage) {
+function Parser (database, modules) {
     async function parse (data) {
-        if (this.loaded) {
+        if (parse.loaded) {
             if (modules[data.typeQuery]) {
-                postMessage({ type: 'result', response: await modules[data.typeQuery](...data.queries) });
+                return { type: 'result', response: await modules[data.typeQuery](...data.queries) };
             } else {
-                postMessage({ type: 'result', error: 'Module ' + data.typeQuery + ' is not imported' });
+                return { type: 'result', error: 'Module ' + data.typeQuery + ' is not imported' };
             }
         } else {
             setTimeout(() => {
-                parse(data);
+                return parse(data);
             }, 500);
         }
     }

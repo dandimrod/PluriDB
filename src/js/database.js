@@ -1,8 +1,9 @@
-function Database (dbName, options, storage, postMessage) {
+function Database (dbName, options, storage) {
     let db;
     let transaction;
     let errorOnTransaction = false;
     let baker;
+    let postMessage;
 
     function Baker (secret) {
         // Credits to https://gist.github.com/rafaelsq/5af573af7e2d763869e2f4cce0a8357a
@@ -350,7 +351,10 @@ function Database (dbName, options, storage, postMessage) {
     }
 
     const returnDb = {
-        init: function () {
+        init: function (messageRelay) {
+            if (messageRelay) {
+                postMessage = messageRelay;
+            }
             initDB(options);
         },
         updateOptions: function (newOptions) {
