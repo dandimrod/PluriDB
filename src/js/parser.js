@@ -1,4 +1,4 @@
-function Parser (database, modules) {
+function Parser (database, modules, JSON2) {
     async function parse (data) {
         if (parse.loaded) {
             if (modules[data.typeQuery]) {
@@ -22,7 +22,7 @@ function Parser (database, modules) {
                             if (typeof module === 'string') {
                                 module = Function('return ' + module)();
                             }
-                            module = module(database);
+                            module = module(database, JSON2);
                             modules[moduleName] = module;
                         } catch (error) {
                             throw new Error(`Error loading module ${moduleName}. Please revise your module configuration: ${error.message}`);

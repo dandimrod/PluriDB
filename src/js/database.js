@@ -1,4 +1,4 @@
-function Database (dbName, options, storage) {
+function Database (dbName, options, storage, JSON2) {
     let db;
     let transaction;
     let errorOnTransaction = false;
@@ -148,19 +148,20 @@ function Database (dbName, options, storage) {
 
         return { compress, decompress };
     }
-    function commit () {
+    async function commit () {
         if (!transaction) {
             if (options.backup) {
                 backup(dbName, db);
             }
-            dbUtils.save();
+            const data = await baker.compress(JSON2.stringify(db));
+            storage.save(data, dbName);
         }
     }
     async function initDB (options) {
         async function selectDB () {
             let databaseStorage;
             try {
-                databaseStorage = JSON.parse(await baker.decompress(await storage.load(dbName)));
+                databaseStorage = JSON2.parse(await baker.decompress(await storage.load(dbName)));
             } catch (error) {
                 console.warn('The database in storage has not loaded properly: ' + error.message);
             }
@@ -169,7 +170,7 @@ function Database (dbName, options, storage) {
             }
             let databaseRestore;
             try {
-                databaseRestore = JSON.parse(await baker.decompress(await restore.restore(dbName)));
+                databaseRestore = JSON2.parse(await baker.decompress(await restore.restore(dbName)));
             } catch (error) {
                 console.warn('The database in backup has not loaded properly: ' + error.message);
             }
@@ -255,7 +256,7 @@ function Database (dbName, options, storage) {
         return { error: `Error executing the query: ${error.message}` };
     }
     async function backup (key, data) {
-        data = await baker.compress(JSON.stringify(data));
+        data = await baker.compress(JSON2.stringify(data));
         postMessage({ type: 'backup', backup: data, backupKey: key });
     }
     const restore = (function () {
@@ -319,7 +320,7 @@ function Database (dbName, options, storage) {
             const passed = {};
             for (const key in registry) {
                 if (Object.prototype.hasOwnProperty.call(registry, key)) {
-                    const data = JSON.parse(JSON.stringify(registry[key]));
+                    const data = JSON2.parse(JSON2.stringify(registry[key]));
                     let result = false;
                     try {
                         result = filterFunction(data);
@@ -394,7 +395,7 @@ function Database (dbName, options, storage) {
                     // index
                     i: 0
                 };
-                if (columns.keys.primary.length !== 0) {
+                if (columns?.keys?.primary?.length && columns?.keys?.primary?.length !== 0) {
                     let error = false;
                     columns.keys.primary.forEach((key) => { if (!columns.columns[key]) { error = key; } });
                     if (error) {
@@ -403,7 +404,7 @@ function Database (dbName, options, storage) {
                     }
                     table.key = columns.keys.primary;
                 }
-                if (columns.keys.foreign.length !== 0) {
+                if (columns?.keys?.foreign?.length && columns?.keys?.foreign?.length !== 0) {
                     let error = false;
                     columns.keys.foreign.forEach((key) => { if (!columns.columns[key.col]) { error = key.col; } });
                     if (error) {
@@ -430,7 +431,7 @@ function Database (dbName, options, storage) {
                     }
                 }
                 commit();
-                return { message: 'Table ' + name + ' was dropped succesfully' };
+                return { message: 'Table ' + name + ' was deleted succesfully' };
             },
             alterTable: function () {
             }
@@ -532,7 +533,7 @@ function Database (dbName, options, storage) {
                 if (transaction) {
                     return { warn: 'Already on a transaction' };
                 } else {
-                    transaction = JSON.parse(JSON.stringify(db));
+                    transaction = JSON2.parse(JSON2.stringify(db));
                     return { message: 'Starting Transaction' };
                 }
             },
@@ -541,7 +542,7 @@ function Database (dbName, options, storage) {
                     return { error: 'Not in a transaction' };
                 } else {
                     if (errorOnTransaction) {
-                        db = JSON.parse(JSON.stringify(transaction));
+                        db = JSON2.parse(JSON2.stringify(transaction));
                         transaction = undefined;
                         errorOnTransaction = false;
                         return { message: 'Rolled back transaction sucessfully' };

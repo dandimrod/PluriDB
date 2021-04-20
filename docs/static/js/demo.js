@@ -8,7 +8,20 @@ const examples = {
     'Main uses': {
         'Initialize database': "db = new PluriDB('demo',{\r\n    worker: true, // Will it use a webworker or not?\r\n    api: 'indexdb', // What technology to use\r\n    fallback: true, // Allows fallback?\r\n    db:{\r\n        backup: undefined, // function for backup\r\n        restore: undefined, // function for restore\r\n        encrypt: false, // password for encryption\r\n    }\r\n});",
         'Change settings': 'Change settings db',
-        'Clear Database': 'Clear db'
+        'Clear Database': 'Clear db',
+        'Force a backup': 'Force a backup'
+    },
+    'Examples of the default module': {
+        'Create a table': "db.m.default.promise.tables.createTable('people', {\r\n    columns:{\r\n        name: {\r\n            type: 'string', // Type, it can be 'string' 'boolean' 'number' 'array' 'object' or 'any'\r\n            constraints: [], // List of rules that has to be true to be inserted on the table\r\n            unique: false, // Is unique in the table\r\n            default: undefined, //Default value if non specified\r\n            meta: {  //Any metadata that is needed on the column \r\n\r\n            }\r\n        },\r\n        age: {\r\n            type: 'number'\r\n        },\r\n    }\r\n}).then(output).catch(output);",
+        'Edit a table': "db.m.default.promise.tables.editTable('people', {\r\n    columns:{\r\n        name: {\r\n            type: 'string', // Type, it can be 'string' 'boolean' 'number' 'array' 'object' or 'any'\r\n            constraints: [], // List of rules that has to be true to be inserted on the table\r\n            unique: false, // Is unique in the table\r\n            default: undefined, //Default value if non specified\r\n            meta: {  //Any metadata that is needed on the column \r\n\r\n            }\r\n        },\r\n        age: {\r\n            type: 'number'\r\n        },\r\n    }\r\n}).then(output).catch(output);",
+        'Delete a table': "db.m.default.promise.tables.deleteTable('people').then(output).catch(output);",
+        'List all tables': 'db.m.default.promise.tables.getTables().then(output).catch(output);',
+        'Show a table': "db.m.default.promise.tables.getTable('people').then(output).catch(output);",
+        'Add data to a table': '',
+        'Edit data from a table': '',
+        'Delete data': '',
+        'Show data': '',
+        'Management of transactions': ''
     },
     'Examples of MongoDB': {
         'Create collections': 'Create collections'
@@ -147,6 +160,7 @@ main();
 // HELPER TRIGGERS
 function output (output) {
     jsonEditor.set(output);
+    reloadTables();
 };
 async function executeCode (codeToExecute) {
     function secureFunction (code, ...variables) {
@@ -166,8 +180,9 @@ async function openTable (tableName) {
 }
 async function reloadTables () {
     const tableList = document.getElementById('table-list');
+    tableList.innerHTML = '';
     const tables = await db.m.default.promise.tables.getTables();
-    tables.forEach(table => {
+    tables.result.forEach(table => {
         const button = document.createElement('button');
         button.innerText = table;
         button.onclick = () => {

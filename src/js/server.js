@@ -1,13 +1,15 @@
-function Server (Storage, Parser, Database) {
+function Server (Storage, Parser, Database, Datatype) {
     return function (dbName, options, modules, context) {
+        let datatype;
         let storage;
         let database;
         let parser;
         let messageRelay;
         function main () {
+            datatype = Datatype(modules.datatype);
             storage = Storage(dbName, options.storage, options.fallback, modules.storage);
-            database = Database(dbName, options.db, storage);
-            parser = Parser(database, modules.parser);
+            database = Database(dbName, options.db, storage, datatype);
+            parser = Parser(database, modules.parser, datatype);
         }
         main();
         async function messageHandler (e) {
@@ -58,6 +60,7 @@ function Server (Storage, Parser, Database) {
         }
         async function initServices () {
             try {
+                datatype.init();
                 await storage.init();
                 await database.init(messageRelay);
                 parser.init();

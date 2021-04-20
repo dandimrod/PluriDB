@@ -41,6 +41,8 @@ function PluriDB (dbName, userOptions, callback) {
         }
     };
     const options = { ...defaultOptions, ...userOptions, db: { ...defaultOptions.db, ...userOptions.db } };
+    const datatype = require('./js/datatype')(PluriDB.modules.datatype);
+    datatype.init();
     const db = {};
     db.server = require('./js/server');
     db.id = 0;
@@ -92,7 +94,7 @@ function PluriDB (dbName, userOptions, callback) {
                 break;
             }
             default:
-                worker = db.server(require('./js/storage'), require('./js/parser'), require('./js/database'))(dbName, options, PluriDB.modules);
+                worker = db.server(require('./js/storage'), require('./js/parser'), require('./js/database'), require('./js/datatype'))(dbName, options, PluriDB.modules);
                 break;
         }
         return worker;
@@ -137,7 +139,7 @@ function PluriDB (dbName, userOptions, callback) {
         }
     };
 
-    const result = require('./js/api')(PluriDB.modules.api, db);
+    const result = require('./js/api')(PluriDB.modules.api, db, datatype);
     return result;
 }
 // Declaration of default modules

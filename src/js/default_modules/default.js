@@ -1,5 +1,5 @@
 module.exports = {
-    api: function (execute) {
+    api: function (execute, JSON2) {
         function promisify (api) {
             const promise = {};
             for (const apiName in api) {
@@ -12,8 +12,12 @@ module.exports = {
                             promise[apiName][apiFunName] = function (...args) {
                                 return new Promise((resolve, reject) => {
                                     try {
-                                        args.unshift((result) => {
-                                            resolve(result);
+                                        args.unshift((error, result) => {
+                                            if (error) {
+                                                reject(error);
+                                            } else {
+                                                resolve(result);
+                                            }
                                         });
                                         apiFun(...args);
                                     } catch (err) {
@@ -37,7 +41,7 @@ module.exports = {
                     execute(callback, 'default', 'tables', 'getTables');
                 },
                 createTable: (callback, name, columns) => {
-                    execute(callback, 'default', 'tables', 'createTable', name, columns);
+                    execute(callback, 'default', 'tables', 'createTable', name, JSON2.stringify(columns));
                 },
                 deleteTable: (callback, name) => {
                     execute(callback, 'default', 'tables', 'deleteTable', name);
@@ -48,16 +52,16 @@ module.exports = {
             },
             data: {
                 getData: (callback, table, filter, tree) => {
-                    execute(callback, 'default', 'data', 'getData', table, filter, tree);
+                    execute(callback, 'default', 'data', 'getData', table, JSON2.stringify(filter), JSON2.stringify(tree));
                 },
                 createData: (callback, table, data) => {
-                    execute(callback, 'default', 'data', 'createData', table, data);
+                    execute(callback, 'default', 'data', 'createData', table, JSON2.stringify(data));
                 },
                 deleteData: (callback, table, filter, tree) => {
-                    execute(callback, 'default', 'data', 'deleteData', table, filter, tree);
+                    execute(callback, 'default', 'data', 'deleteData', table, JSON2.stringify(filter), JSON2.stringify(tree));
                 },
                 updateData: (callback, table, data, filter, tree) => {
-                    execute(callback, 'default', 'data', 'updateData', table, data, filter, tree);
+                    execute(callback, 'default', 'data', 'updateData', table, JSON2.stringify(data), JSON2.stringify(filter), JSON2.stringify(tree));
                 }
             },
             utils: {
@@ -71,7 +75,7 @@ module.exports = {
         };
         return promisify(returnedApi);
     },
-    parser: function (db) {
+    parser: function (db, JSON2) {
         return async function (target, method, ...args) {
             if (!(target === 'tables' || target === 'data' || target === 'utils')) {
                 return { error: 'Operation not supported' };
@@ -79,7 +83,14 @@ module.exports = {
             if (!db[target][method]) {
                 return { error: 'Operation not supported' };
             }
-            return await db[target][method](...args);
+            const parsedArgs = args.map((value, index) => {
+                if (index !== 0) {
+                    return JSON2.parse(value);
+                } else {
+                    return value;
+                }
+            });
+            return await db[target][method](...parsedArgs);
         };
     }
 };

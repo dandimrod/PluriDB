@@ -1,4 +1,4 @@
-function Api (modules, db) {
+function Api (modules, db, JSON2) {
     function execute (callback, type, ...args) {
         db.id++;
         db.callbacks[db.id] = callback;
@@ -56,7 +56,7 @@ function Api (modules, db) {
         for (const moduleName in modules) {
             if (Object.prototype.hasOwnProperty.call(modules, moduleName)) {
                 const apiModule = modules[moduleName];
-                apiModules[moduleName] = apiModule(execute);
+                apiModules[moduleName] = apiModule(execute, JSON2);
             }
         }
         return apiModules;
