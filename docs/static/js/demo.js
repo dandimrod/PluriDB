@@ -17,7 +17,7 @@ const examples = {
         'Delete a table': "db.m.default.promise.tables.deleteTable('people').then(output).catch(output);",
         'List all tables': 'db.m.default.promise.tables.getTables().then(output).catch(output);',
         'Show a table': "db.m.default.promise.tables.getTable('people').then(output).catch(output);",
-        'Add data to a table': '',
+        'Add data to a table': "db.m.default.promise.data.createData('people', { name: 'john doe', age: 6 }).then(output).catch(output);",
         'Edit data from a table': '',
         'Delete data': '',
         'Show data': '',

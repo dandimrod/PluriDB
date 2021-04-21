@@ -6,6 +6,48 @@ module.exports = {
         default: require('./default').parser
     },
     datatype: {
+        any: function () {
+            return {
+                isDatatype: function (value) {
+                    return true;
+                },
+                serialize: function (value) {
+                    return value;
+                },
+                deserialize: function (value) {
+                    return value;
+                },
+                ignoreSerialization: true
+            };
+        },
+        object: function () {
+            return {
+                isDatatype: function (value) {
+                    return typeof value === 'object';
+                },
+                serialize: function (value) {
+                    return value;
+                },
+                deserialize: function (value) {
+                    return value;
+                },
+                ignoreSerialization: true
+            };
+        },
+        array: function () {
+            return {
+                isDatatype: function (value) {
+                    return Array.isArray(value);
+                },
+                serialize: function (value) {
+                    return value;
+                },
+                deserialize: function (value) {
+                    return value;
+                },
+                ignoreSerialization: true
+            };
+        },
         string: function () {
             return {
                 isDatatype: function (value) {

@@ -1,5 +1,6 @@
 function Datatype (modules) {
     const datatypes = {};
+    let datatypeList;
     function loadModules () {
         for (const moduleName in modules) {
             if (Object.prototype.hasOwnProperty.call(modules, moduleName)) {
@@ -17,6 +18,7 @@ function Datatype (modules) {
     }
     function init () {
         loadModules();
+        datatypeList = Object.keys(datatypes).reverse();
     }
     function stringify (value, replacer, space) {
         return JSON.stringify(value, (key, value) => {
@@ -24,13 +26,12 @@ function Datatype (modules) {
                 return undefined;
             }
             let result;
-            for (const datatypeName in datatypes) {
-                if (Object.prototype.hasOwnProperty.call(datatypes, datatypeName)) {
-                    const datatype = datatypes[datatypeName];
-                    if (datatype.isDatatype(value)) {
-                        result = `${datatypeName};${datatype.serialize(value)}`;
-                        break;
-                    }
+            for (let index = 0; index < datatypeList.length; index++) {
+                const datatypeName = datatypeList[index];
+                const datatype = datatypes[datatypeName];
+                if (datatype.isDatatype(value) && !datatype.ignoreSerialization) {
+                    result = `${datatypeName};${datatype.serialize(value)}`;
+                    break;
                 }
             }
             if (replacer) {

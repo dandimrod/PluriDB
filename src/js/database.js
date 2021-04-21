@@ -287,19 +287,37 @@ function Database (dbName, options, storage, JSON2) {
         }
     }
 
-    function checkConstraints (columnConstraints, data) {
+    function checkConstraints (columnConstraints, data, table) {
         for (const column in data) {
             if (Object.prototype.hasOwnProperty.call(data, column)) {
                 const value = data[column];
-                if (!columnConstraints[column]) {
-                    return { error: 'Table ' + name + ' does not have column ' + column };
+                const myColumn = columnConstraints[column] || columnConstraints['*'];
+                if (!myColumn) {
+                    return { error: 'The table does not have column ' + column };
                 }
-                if (columnConstraints[column].c) {
-                    for (let index = 0; index < columnConstraints[column].c.length; index++) {
-                        const constraint = columnConstraints[column].c[index];
-                        const constraintFunction = secureFunction(constraint, 'column', 'data');
+                if (myColumn.type) {
+                    const type = JSON2.datatypes[myColumn.type];
+                    if (!type) {
+                        return { error: 'The datatype ' + type + ' does not exist' };
+                    }
+                    if (!type.isDatatype(value)) {
+                        return { error: 'The value ' + value + ' introduced in the column ' + column + ' does not match the datatype ' + type };
+                    }
+                }
+                if (myColumn.unique) {
+                    const tableEntries = Object.keys(table);
+                    for (let index = 0; index < tableEntries.length; index++) {
+                        const values = table[tableEntries[index]];
+                        if (values[column] === value) {
+                            return { error: 'The value ' + value + ' is not unique' };
+                        }
+                    }
+                }
+                if (myColumn.constraints) {
+                    for (let index = 0; index < columnConstraints[column].constraints.length; index++) {
+                        const constraint = columnConstraints[column].constraints[index];
                         try {
-                            if (!constraintFunction(column, value)) {
+                            if (!constraint(column, value, JSON2.parse(JSON2.stringify(table)))) {
                                 return { error: 'The value ' + value + ' does not comply with the constraint ' + constraint + ' of the column ' + column };
                             }
                         } catch (e) {
@@ -433,14 +451,22 @@ function Database (dbName, options, storage, JSON2) {
                 commit();
                 return { message: 'Table ' + name + ' was deleted succesfully' };
             },
-            alterTable: function () {
+            updateTable: function (name, columns) {
+                if (!db.t[name]) {
+                    endedOnError();
+                    return { error: 'Table ' + name + ' does not exist' };
+                }
+                const table = db.t[name];
+                table.c = columns.columns;
+                db.t[name] = table;
+                commit();
             }
         },
         data: {
             getData: function (table, filter, tree) {
                 if (!db.t[table]) {
                     endedOnError();
-                    return { error: 'Table ' + name + ' does not exist' };
+                    return { error: 'Table ' + table + ' does not exist' };
                 }
                 const values = treefy(table, tree);
                 if (values.error) {
@@ -457,7 +483,7 @@ function Database (dbName, options, storage, JSON2) {
             createData: function (table, data) {
                 if (!db.t[table]) {
                     endedOnError();
-                    return { error: 'Table ' + name + ' does not exist' };
+                    return { error: 'Table ' + table + ' does not exist' };
                 }
                 table = db.t[table];
                 // Handling of default values
@@ -466,7 +492,7 @@ function Database (dbName, options, storage, JSON2) {
                         data[column] = table.c.d;
                     }
                 });
-                const checkedConstraints = checkConstraints(table.c, data);
+                const checkedConstraints = checkConstraints(table.c, data, table.v);
                 if (checkedConstraints.error) {
                     endedOnError();
                     return checkedConstraints;
@@ -479,7 +505,7 @@ function Database (dbName, options, storage, JSON2) {
             deleteData: function (table, filter, tree) {
                 if (!db.t[table]) {
                     endedOnError();
-                    return { error: 'Table ' + name + ' does not exist' };
+                    return { error: 'Table ' + table + ' does not exist' };
                 }
                 table = db.t[table];
                 const values = treefy(table, tree);
@@ -501,7 +527,7 @@ function Database (dbName, options, storage, JSON2) {
             updateData: function (table, data, filter, tree) {
                 if (!db.t[table]) {
                     endedOnError();
-                    return { error: 'Table ' + name + ' does not exist' };
+                    return { error: 'Table ' + table + ' does not exist' };
                 }
                 table = db.t[table];
                 const values = treefy(table, tree);

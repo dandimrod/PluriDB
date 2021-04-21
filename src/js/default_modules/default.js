@@ -46,8 +46,8 @@ module.exports = {
                 deleteTable: (callback, name) => {
                     execute(callback, 'default', 'tables', 'deleteTable', name);
                 },
-                updateTable: (callback) => {
-                    execute(callback, 'default', 'tables', 'updateTable');
+                updateTable: (callback, name, columns) => {
+                    execute(callback, 'default', 'tables', 'updateTable', name, JSON2.stringify(columns));
                 }
             },
             data: {
