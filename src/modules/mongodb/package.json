@@ -1,6 +1,6 @@
 {
     "name": "pdbm-mongodb",
     "description": "",
-    "main": "PluriDB.mongodb.module.js"
+    "main": "pdbm-mongodb.js"
 }
   

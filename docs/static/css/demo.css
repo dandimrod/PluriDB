@@ -39,6 +39,56 @@ section{
 #table-list>button{
     scroll-snap-align: start;
 }
+.jsoneditor {
+    border: 2px solid;
+    border-image-source: linear-gradient(139deg, rgba(81, 176, 223, 1) 0%, rgba(81, 176, 223, 1) 50%, rgba(230, 167, 74, 1) 50%, rgba(230, 167, 74, 1) 100%);
+    border-image-slice: 1;
+}
+.jsoneditor-menu {
+    border-bottom: 2px solid;
+    border-image-source: linear-gradient(139deg, rgba(81, 176, 223, 1) 0%, rgba(81, 176, 223, 1) 50%, rgba(230, 167, 74, 1) 50%, rgba(230, 167, 74, 1) 100%);
+    border-image-slice: 1;
+    background-color: white;
+}
+.jsoneditor-menu > button{
+    border: 2px solid;
+    border-image-source: linear-gradient(139deg, rgba(81, 176, 223, 1) 0%, rgba(81, 176, 223, 1) 50%, rgba(230, 167, 74, 1) 50%, rgba(230, 167, 74, 1) 100%);
+    border-image-slice: 1;
+    background-color: rgb(172, 172, 172);
+    transition: 250ms ease-in-out;
+}
+.jsoneditor-menu > button:hover{
+    border: 2px solid;
+    border-image-source: linear-gradient(139deg, rgba(81, 176, 223, 1) 0%, rgba(81, 176, 223, 1) 50%, rgba(230, 167, 74, 1) 50%, rgba(230, 167, 74, 1) 100%);
+    border-image-slice: 1;
+    background-color: rgb(226, 226, 226);
+}
+.jsoneditor-menu > button::before{
+    background: transparent;
+}
+.jsoneditor-menu > button::after{
+    background: transparent;
+}
+.jsoneditor-menu .jsoneditor-modes .jsoneditor-separator{
+    border: 2px solid;
+    border-image-source: linear-gradient(139deg, rgba(81, 176, 223, 1) 0%, rgba(81, 176, 223, 1) 50%, rgba(230, 167, 74, 1) 50%, rgba(230, 167, 74, 1) 100%);
+    border-image-slice: 1;
+    color: black;
+}
+.jsoneditor-frame>input {
+    border-bottom: 2px solid;
+    border-top:  none;
+    border-left: none;
+    border-right: none;
+    border-image-source: linear-gradient(139deg, rgba(81, 176, 223, 1) 0%, rgba(81, 176, 223, 1) 50%, rgba(230, 167, 74, 1) 50%, rgba(230, 167, 74, 1) 100%);
+    border-image-slice: 1;
+}
+.jsoneditor-undo, .jsoneditor-redo {
+    background-color: white;
+}
+.jsoneditor-selected{
+    background: linear-gradient(139deg, rgba(81, 176, 223, 1) 0%, rgba(81, 176, 223, 1) 50%, rgba(255, 255, 255, 1) 48%, rgba(255, 255, 255, 1) 50%, rgba(230, 167, 74, 1) 50%, rgba(230, 167, 74, 1) 100%);
+}
 
 @media (max-width: 600px) {
     main {
@@ -56,4 +106,13 @@ section{
         margin: 5px;
         scroll-snap-align: start;
     }
+}
+
+#table-inspector table td, #table-inspector table th {
+    border-bottom: 2px solid;
+    border-top:  2px solid;
+    border-left: 2px solid;
+    border-right: 2px solid;
+    border-image-source: linear-gradient(139deg, rgba(81, 176, 223, 1) 0%, rgba(81, 176, 223, 1) 50%, rgba(230, 167, 74, 1) 50%, rgba(230, 167, 74, 1) 100%);
+    border-image-slice: 1;
 }
