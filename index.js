@@ -9,7 +9,7 @@ const grizzly = require('grizzly');
 const putasset = require('putasset');
 const { Octokit } = require('@octokit/rest');
 
-const version = '0.3.0-x';
+const version = '0.3.0';
 const name = 'PluriDB';
 const runner = (config) => {
     return new Promise((res, rej) => {
