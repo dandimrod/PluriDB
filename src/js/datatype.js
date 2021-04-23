@@ -43,6 +43,9 @@ function Datatype (modules) {
     }
 
     function parse (text, reviver) {
+        if (typeof text === 'undefined') {
+            return text;
+        }
         return JSON.parse(text, (key, value) => {
             let result;
             if (typeof value === 'string') {

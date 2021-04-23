@@ -25,7 +25,7 @@ module.exports = function (dbname) {
         save: function (data, key) {
             localStorage.setItem(key, data);
         },
-        drop: function () {
+        drop: function (dbName) {
             return new Promise((resolve) => {
                 for (let index = 0; index < localStorage.length; index++) {
                     if (localStorage.key(index).startsWith(dbname)) {

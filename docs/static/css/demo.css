@@ -107,3 +107,12 @@ section{
         scroll-snap-align: start;
     }
 }
+
+#table-inspector table td, #table-inspector table th {
+    border-bottom: 2px solid;
+    border-top:  2px solid;
+    border-left: 2px solid;
+    border-right: 2px solid;
+    border-image-source: linear-gradient(139deg, rgba(81, 176, 223, 1) 0%, rgba(81, 176, 223, 1) 50%, rgba(230, 167, 74, 1) 50%, rgba(230, 167, 74, 1) 100%);
+    border-image-slice: 1;
+}

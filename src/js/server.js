@@ -26,11 +26,11 @@ function Server (Storage, Parser, Database, Datatype) {
                         break;
 
                     case 'drop':
-                        await database.drop();
+                        result = await database.drop();
                         break;
 
                     case 'backup':
-                        await database.forceBackup();
+                        result = await database.forceBackup();
                         break;
 
                     case 'restore':

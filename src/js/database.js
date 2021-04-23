@@ -317,7 +317,7 @@ function Database (dbName, options, storage, JSON2) {
                     for (let index = 0; index < columnConstraints[column].constraints.length; index++) {
                         const constraint = columnConstraints[column].constraints[index];
                         try {
-                            if (!constraint(column, value, JSON2.parse(JSON2.stringify(table)))) {
+                            if (!constraint(value, column, JSON2.parse(JSON2.stringify(table)))) {
                                 return { error: 'The value ' + value + ' does not comply with the constraint ' + constraint + ' of the column ' + column };
                             }
                         } catch (e) {
@@ -334,14 +334,13 @@ function Database (dbName, options, storage, JSON2) {
             return registry;
         }
         try {
-            const filterFunction = secureFunction(filter, 'data');
             const passed = {};
             for (const key in registry) {
                 if (Object.prototype.hasOwnProperty.call(registry, key)) {
                     const data = JSON2.parse(JSON2.stringify(registry[key]));
                     let result = false;
                     try {
-                        result = filterFunction(data);
+                        result = filter(data, key, JSON.parse(JSON2.stringify(registry)));
                     } catch (error) {
 
                     }
@@ -359,14 +358,44 @@ function Database (dbName, options, storage, JSON2) {
         if (!treeData || treeData.length === 0) {
             return db.t[tableName].v;
         }
-    }
-    function secureFunction (code, ...variables) {
-        // https://stackoverflow.com/questions/47444376/sanitizing-eval-to-prevent-it-from-changing-any-values
-        const globals = [...variables, 'globalThis', ...Object.keys(globalThis), `return ${code};`];
-        const securized = Function.apply(null, globals);
-        return function (...variables) {
-            return securized.apply({}, variables);
-        };
+        const table = db.t[tableName];
+        const values = JSON.parse(JSON.stringify(db.t[tableName].v));
+        for (const key in values) {
+            if (Object.hasOwnProperty.call(values, key)) {
+                const value = values[key];
+                for (let index = 0; index < treeData.length; index++) {
+                    const treeBranch = treeData[index].split('/');
+                    let currentTable = table;
+                    let currentValue = value;
+                    for (let index = 0; index < treeBranch.length; index++) {
+                        const treeElement = treeBranch[index];
+                        const columnData = currentTable.c[treeElement];
+                        if (!currentValue) {
+                            break;
+                        }
+                        if (columnData && columnData.type === 'reference' && db.t[columnData.to]) {
+                            const type = typeof currentValue[treeElement];
+                            if (type === 'undefined') {
+                                break;
+                            }
+                            if (type === 'string' || type === 'object') {
+                                if (type === 'string') {
+                                    const index = currentValue[treeElement];
+                                    currentValue[treeElement] = JSON2.parse(JSON2.stringify(db.t[columnData.to].v[index]));
+                                }
+                                currentValue = currentValue[treeElement];
+                                currentTable = db.t[columnData.at];
+                                continue;
+                            }
+                            return { error: 'Value ' + currentValue[treeElement] + ' is not a real reference' };
+                        } else {
+                            return { error: 'Column ' + treeElement + ' not found' };
+                        }
+                    }
+                }
+            }
+        }
+        return values;
     }
 
     const returnDb = {
@@ -389,7 +418,7 @@ function Database (dbName, options, storage, JSON2) {
                     return { error: 'Table ' + name + ' does not exist' };
                 }
                 const table = db.t[name];
-                return { columns: table.c, parents: table.p, descendants: table.d, keys: table.k, metadata: table.m };
+                return { result: { columns: table.c, metadata: table.m } };
             },
             getTables: function () {
                 return { result: Object.keys(db.t) };
@@ -399,39 +428,21 @@ function Database (dbName, options, storage, JSON2) {
                     endedOnError();
                     return { error: 'Table ' + name + ' already exists' };
                 }
+                if (name.includes('/')) {
+                    return { error: 'Table names cannot contain /' };
+                }
                 const table = {
                     // values
                     v: {},
                     // columns
                     c: {},
-                    // parents
-                    p: [],
-                    // decendants
-                    d: [],
-                    // key
-                    k: [],
+                    // metadata
+                    m: {},
                     // index
                     i: 0
                 };
-                if (columns?.keys?.primary?.length && columns?.keys?.primary?.length !== 0) {
-                    let error = false;
-                    columns.keys.primary.forEach((key) => { if (!columns.columns[key]) { error = key; } });
-                    if (error) {
-                        endedOnError();
-                        return { error: 'The table does not contain the primary key: ' + error };
-                    }
-                    table.key = columns.keys.primary;
-                }
-                if (columns?.keys?.foreign?.length && columns?.keys?.foreign?.length !== 0) {
-                    let error = false;
-                    columns.keys.foreign.forEach((key) => { if (!columns.columns[key.col]) { error = key.col; } });
-                    if (error) {
-                        endedOnError();
-                        return { error: 'The table does not contain the foreign key: ' + error };
-                    }
-                    table.key = columns.keys.primary;
-                }
                 table.c = columns.columns;
+                table.m = columns.metadata;
                 db.t[name] = table;
                 commit();
                 return { message: 'Table ' + name + ' created' };
@@ -460,15 +471,16 @@ function Database (dbName, options, storage, JSON2) {
                 table.c = columns.columns;
                 db.t[name] = table;
                 commit();
+                return { message: 'Table ' + name + ' was updated succesfully' };
             }
         },
         data: {
-            getData: function (table, filter, tree) {
-                if (!db.t[table]) {
+            getData: function (tableName, filter, tree) {
+                if (!db.t[tableName]) {
                     endedOnError();
-                    return { error: 'Table ' + table + ' does not exist' };
+                    return { error: 'Table ' + tableName + ' does not exist' };
                 }
-                const values = treefy(table, tree);
+                const values = treefy(tableName, tree);
                 if (values.error) {
                     endedOnError();
                     return values;
@@ -480,12 +492,12 @@ function Database (dbName, options, storage, JSON2) {
                 }
                 return { result: returned };
             },
-            createData: function (table, data) {
-                if (!db.t[table]) {
+            createData: function (tableName, data) {
+                if (!db.t[tableName]) {
                     endedOnError();
-                    return { error: 'Table ' + table + ' does not exist' };
+                    return { error: 'Table ' + tableName + ' does not exist' };
                 }
-                table = db.t[table];
+                table = db.t[tableName];
                 // Handling of default values
                 Object.keys(table.c).forEach((column) => {
                     if (data[column] === undefined && table.c.d) {
@@ -497,18 +509,19 @@ function Database (dbName, options, storage, JSON2) {
                     endedOnError();
                     return checkedConstraints;
                 }
-                table.v[table.i] = data;
+                const id = table.i;
+                table.v[id] = data;
                 table.i++;
                 commit();
-                return { message: 'Data inserted' };
+                return { message: 'Data inserted', result: id.toString() };
             },
-            deleteData: function (table, filter, tree) {
-                if (!db.t[table]) {
+            deleteData: function (tableName, filter, tree) {
+                if (!db.t[tableName]) {
                     endedOnError();
-                    return { error: 'Table ' + table + ' does not exist' };
+                    return { error: 'Table ' + tableName + ' does not exist' };
                 }
-                table = db.t[table];
-                const values = treefy(table, tree);
+                table = db.t[tableName];
+                const values = treefy(tableName, tree);
                 if (values.error) {
                     endedOnError();
                     return values;
@@ -518,19 +531,19 @@ function Database (dbName, options, storage, JSON2) {
                     endedOnError();
                     return toBeDeleted;
                 }
-                Object.keys[toBeDeleted].forEach((key) => {
+                Object.keys(toBeDeleted).forEach((key) => {
                     delete table.v[key];
                 });
                 commit();
                 return { message: 'Deleted ' + Object.keys(toBeDeleted).length + ' rows' };
             },
-            updateData: function (table, data, filter, tree) {
-                if (!db.t[table]) {
+            updateData: function (tableName, data, filter, tree) {
+                if (!db.t[tableName]) {
                     endedOnError();
-                    return { error: 'Table ' + table + ' does not exist' };
+                    return { error: 'Table ' + tableName + ' does not exist' };
                 }
-                table = db.t[table];
-                const values = treefy(table, tree);
+                table = db.t[tableName];
+                const values = treefy(tableName, tree);
                 if (values.error) {
                     endedOnError();
                     return values;
@@ -540,15 +553,13 @@ function Database (dbName, options, storage, JSON2) {
                     endedOnError();
                     return toBeUpdated;
                 }
-                const checkedConstraints = checkConstraints(table.c, data);
+                const checkedConstraints = checkConstraints(table.c, data, table.v);
                 if (checkedConstraints.error) {
                     endedOnError();
                     return checkedConstraints;
                 }
                 Object.keys(toBeUpdated).forEach((key) => {
-                    Object.keys(data).forEach((column) => {
-                        table.v[key] = data[column];
-                    });
+                    table.v[key] = data;
                 });
                 commit();
                 return { message: 'Updated ' + Object.keys(toBeUpdated).length + ' rows' };
@@ -583,6 +594,15 @@ function Database (dbName, options, storage, JSON2) {
                 endedOnError();
             },
             checkTransaction
+        },
+        forceBackup: function () {
+            commit();
+            return { message: 'Backup started' };
+        },
+        drop: async function () {
+            await storage.drop(dbName);
+            Object.keys(returnDb).forEach(value => delete returnDb[value]);
+            return { type: 'error', message: 'Database was dropped' };
         }
     };
 

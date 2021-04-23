@@ -53,7 +53,7 @@ module.exports = function (dbname) {
                 };
             });
         },
-        drop: function () {
+        drop: function (dbName) {
             return new Promise((resolve) => {
                 const requestDB = indexedDB.open('PluriDB', 1);
                 requestDB.onerror = function (event) {

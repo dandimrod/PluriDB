@@ -81,14 +81,14 @@ function PluriDB (dbName, userOptions, callback) {
         switch (type) {
             case 'worker':
                 worker = new Worker(URL.createObjectURL(new Blob([`( ${db.server.toString()})
-                (${require('./js/storage').toString()}, ${require('./js/parser').toString()}, ${require('./js/database').toString()})
+                (${require('./js/storage').toString()}, ${require('./js/parser').toString()}, ${require('./js/database').toString()}, ${require('./js/datatype').toString()})
                 ("${dbName}", ${JSON.stringify(options)}, ${JSON.stringify(PluriDB.modules, (data, val) => typeof val === 'function' ? val.toString() : val)}, 'worker')`],
                 { type: 'text/javascript' })));
                 break;
             case 'node': {
                 const { WorkerNode } = require('worker_threads');
                 worker = new WorkerNode(`( ${db.server.toString()})
-                (${require('./js/storage').toString()}, ${require('./js/parser').toString()}, ${require('./js/database').toString()})
+                (${require('./js/storage').toString()}, ${require('./js/parser').toString()}, ${require('./js/database').toString()}, ${require('./js/datatype').toString()})
                 ("${dbName}", ${JSON.stringify(options)}, ${JSON.stringify(PluriDB.modules, (data, val) => typeof val === 'function' ? val.toString() : val)}, 'node')
                 `, { eval: true });
                 break;

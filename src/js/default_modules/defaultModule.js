@@ -48,6 +48,20 @@ module.exports = {
                 ignoreSerialization: true
             };
         },
+        reference: function () {
+            return {
+                isDatatype: function (value) {
+                    return typeof value === 'string';
+                },
+                serialize: function (value) {
+                    return value;
+                },
+                deserialize: function (value) {
+                    return value;
+                },
+                ignoreSerialization: true
+            };
+        },
         string: function () {
             return {
                 isDatatype: function (value) {

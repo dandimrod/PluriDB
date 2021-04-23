@@ -19,7 +19,7 @@ module.exports = function (dbname) {
         save: function (data, key) {
             db[key] = data;
         },
-        drop: function () {
+        drop: function (dbName) {
             return new Promise((resolve) => {
                 this.db = {};
                 resolve();
