@@ -1,0 +1,5 @@
+{
+  "name": "pluridb",
+  "description": "A flexible database for the frontend",
+  "main": "PluriDB.js"
+}
