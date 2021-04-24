@@ -1,3 +1,4 @@
+const cp = require('child_process');
 const webpack = require('webpack');
 const webpackConfig = require('./webpack.config');
 const fs = require('fs');
@@ -11,6 +12,11 @@ const { Octokit } = require('@octokit/rest');
 
 const version = '0.3.0';
 const name = 'PluriDB';
+
+const modules = [
+    './src/PluriDB'
+];
+
 const runner = (config) => {
     return new Promise((res, rej) => {
         webpack(config).run((err, stats) => {
@@ -88,6 +94,23 @@ const build = async () => {
     return files;
 };
 
+const productionBuild = async (modulePath, version) => {
+    console.log('Building module ' + modulePath + '...');
+    deleteFolderRecursive('./build');
+    deleteFolderRecursive(path.join(modulePath, 'build'));
+    const moduleWebpack = require('./' + path.join(modulePath, 'webpack.config'));
+    await runner(moduleWebpack);
+    copyFolderRecursiveSync(path.join(modulePath, 'build'), './build');
+    const packageModule = JSON.parse(fs.readFileSync(path.join(modulePath, 'package.json'), 'utf-8'));
+    const packageSelf = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
+    const newPackage = { ...packageSelf, ...packageModule };
+    newPackage.version = version;
+    delete newPackage.scripts;
+    delete newPackage.dependencies;
+    fs.writeFileSync(path.join(modulePath, 'build', 'package.json'), JSON.stringify(newPackage, null, 2));
+    fs.copyFileSync(path.join(modulePath, 'README.md'), path.join(modulePath, 'build', 'README.md'));
+};
+
 const githubRelease = async (thisVersion, user, pass, files) => {
     console.log('Creating a new tagged release...');
     await grizzly(pass, {
@@ -155,8 +178,15 @@ const publish = async () => {
     console.log('Starting publishing procedure...');
     const user = argv.user;
     const pass = argv.pass;
-    const files = await build();
     const thisVersion = await getVersion(user, pass);
+    for (let index = 0; index < modules.length; index++) {
+        const module = modules[index];
+        await productionBuild(module, thisVersion.version);
+        console.log('Publising module ' + module + ' in NPM');
+        cp.execSync('npm publish ./' + path.join(module, 'build'));
+    }
+    console.log('Publishing in GitHub');
+    const files = fs.readdirSync('build').map(file => path.join('build', file));
     await githubRelease(thisVersion, user, pass, files);
 };
 

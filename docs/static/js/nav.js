@@ -28,7 +28,13 @@
             name: 'Git Repository',
             hidden: true,
             external: true
-        }
+        },
+        {
+            path: 'https://www.npmjs.com/package/pluridb',
+            name: 'NPM',
+            hidden: true,
+            external: true
+        },
         ];
 
         function path (target) {
