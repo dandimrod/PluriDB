@@ -34,7 +34,7 @@
             name: 'NPM',
             hidden: true,
             external: true
-        },
+        }
         ];
 
         function path (target) {
