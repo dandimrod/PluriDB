@@ -3,10 +3,9 @@ function Parser (database, modules, JSON2) {
         return new Promise((resolve) => {
             if (parse.loaded) {
                 if (modules[data.typeQuery]) {
-                    const execute = async () => {
+                    (async () => {
                         return { type: 'result', response: await modules[data.typeQuery](...data.queries) };
-                    };
-                    execute.then(resolve);
+                    })().then(resolve);
                 } else {
                     resolve({ type: 'result', error: 'Module ' + data.typeQuery + ' is not imported' });
                 }
