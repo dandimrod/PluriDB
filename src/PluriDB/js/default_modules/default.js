@@ -3,7 +3,7 @@ module.exports = {
         function promisify (api) {
             const promise = {};
             for (const apiName in api) {
-                if (Object.hasOwnProperty.call(api, apiName)) {
+                if (Object.hasOwnProperty.call(api, apiName) && apiName !== 'scopedFunction') {
                     const apiModule = api[apiName];
                     promise[apiName] = {};
                     for (const apiFunName in apiModule) {
@@ -71,6 +71,13 @@ module.exports = {
                 endTransaction: (callback) => {
                     execute(callback, 'default', 'utils', 'endTransaction');
                 }
+            },
+            scopedFunction: function (executable, scope) {
+                const newFunctionString = `function(...args){
+                    let {${Object.keys(scope)}} = JSON.parse('${JSON.stringify(scope)}');
+                    return (${executable.toString()})(...args);
+                }`;
+                return new Function('return ' + newFunctionString)();
             }
         };
         return promisify(returnedApi);
