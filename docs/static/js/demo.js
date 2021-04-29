@@ -1,7 +1,7 @@
 const isProduction = true;
 const modules = [
     // { moduleName: 'pdbm_mongodb', pro: '', dev: '../pdbm_mongodb.js' },
-    { pro: 'https://cdn.jsdelivr.net/npm/pluridb@0.3.0/PluriDB.js', dev: '../PluriDB.js' }
+    { pro: 'https://cdn.jsdelivr.net/npm/pluridb@latest/PluriDB.js', dev: '../PluriDB.js' }
 ];
 
 const examples = {
@@ -21,11 +21,7 @@ const examples = {
         'Delete data': "db.m.default.promise.data.deleteData('people', (value)=>{\n    return value.name ===  'john smith'; //This is our filter function\n}\n).then(output).catch(output);",
         'Show data': "db.m.default.promise.data.getData(\n    'pet',\n    (value)=>{\n        return value.name === 'coco';\n    }, // filter function\n    ['owner'] // The paramether here will exchange references with the object inserted in the database (Like SQL JOIN)\n).then(output).catch(output);",
         'Management of transactions': "db.m.default.promise.utils.startTransaction();\ndb.m.default.promise.data.createData('people', { \n    name: 'john doe',   \n    age: 3 // This registry will fail due to the constraint of age\n}).then(output).catch(output);\n\ndb.m.default.promise.data.createData('pet', { \n    name: 'coco', // This registry will fail because the previous one did too\n    owner: '0'\n}).then(output).catch(output);\ndb.m.default.promise.utils.endTransaction();\n"
-    },
-    'Examples of MongoDB': {
-        'Create collections': 'Create collections'
     }
-
 };
 
 async function initializeEditor () {
