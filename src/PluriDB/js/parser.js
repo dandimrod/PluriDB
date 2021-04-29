@@ -1,16 +1,21 @@
 function Parser (database, modules, JSON2) {
-    async function parse (data) {
-        if (parse.loaded) {
-            if (modules[data.typeQuery]) {
-                return { type: 'result', response: await modules[data.typeQuery](...data.queries) };
+    function parse (data) {
+        return new Promise((resolve) => {
+            if (parse.loaded) {
+                if (modules[data.typeQuery]) {
+                    const execute = async () => {
+                        return { type: 'result', response: await modules[data.typeQuery](...data.queries) };
+                    };
+                    execute.then(resolve);
+                } else {
+                    resolve({ type: 'result', error: 'Module ' + data.typeQuery + ' is not imported' });
+                }
             } else {
-                return { type: 'result', error: 'Module ' + data.typeQuery + ' is not imported' };
+                setTimeout(async () => {
+                    resolve(await parse(data));
+                }, 500);
             }
-        } else {
-            setTimeout(() => {
-                return parse(data);
-            }, 500);
-        }
+        });
     }
     parse.init = () => {
         try {
