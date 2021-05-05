@@ -298,10 +298,10 @@ function Database (dbName, options, storage, JSON2) {
                 if (myColumn.type) {
                     const type = JSON2.datatypes[myColumn.type];
                     if (!type) {
-                        return { error: 'The datatype ' + type + ' does not exist' };
+                        return { error: 'The datatype ' + myColumn.type + ' does not exist' };
                     }
                     if (!type.isDatatype(value)) {
-                        return { error: 'The value ' + value + ' introduced in the column ' + column + ' does not match the datatype ' + type };
+                        return { error: 'The value ' + value + ' introduced in the column ' + column + ' does not match the datatype ' + myColumn.type };
                     }
                 }
                 if (myColumn.unique) {
@@ -335,12 +335,13 @@ function Database (dbName, options, storage, JSON2) {
         }
         try {
             const passed = {};
+            const registryClone = JSON.parse(JSON2.stringify(registry));
             for (const key in registry) {
                 if (Object.prototype.hasOwnProperty.call(registry, key)) {
                     const data = JSON2.parse(JSON2.stringify(registry[key]));
                     let result = false;
                     try {
-                        result = filter(data, key, JSON.parse(JSON2.stringify(registry)));
+                        result = filter(data, key, registryClone);
                     } catch (error) {
 
                     }
@@ -399,11 +400,11 @@ function Database (dbName, options, storage, JSON2) {
     }
 
     const returnDb = {
-        init: function (messageRelay) {
+        init: async function (messageRelay) {
             if (messageRelay) {
                 postMessage = messageRelay;
             }
-            initDB(options);
+            await initDB(options);
         },
         updateOptions: function (newOptions) {
             options = { options, ...newOptions };

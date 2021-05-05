@@ -18,26 +18,33 @@ function Datatype (modules) {
     }
     function init () {
         loadModules();
-        datatypeList = Object.keys(datatypes).reverse();
+        datatypeList = Object.keys(datatypes).reverse().filter(datatypeName => !datatypes[datatypeName].ignoreSerialization);
     }
     function stringify (value, replacer, space) {
         return JSON.stringify(value, (key, value) => {
-            if (key === '_type_') {
-                return undefined;
-            }
             let result;
-            for (let index = 0; index < datatypeList.length; index++) {
-                const datatypeName = datatypeList[index];
+            if (datatypeList[typeof value]) {
+                const datatypeName = datatypeList[typeof value];
                 const datatype = datatypes[datatypeName];
                 if (datatype.isDatatype(value) && !datatype.ignoreSerialization) {
                     result = `${datatypeName};${datatype.serialize(value)}`;
-                    break;
                 }
             }
-            if (replacer) {
-                return replacer(key, typeof result !== 'undefined' ? result : value);
-            } else {
+            if (!result) {
+                for (let index = 0; index < datatypeList.length; index++) {
+                    const datatypeName = datatypeList[index];
+                    const datatype = datatypes[datatypeName];
+                    if (datatype.isDatatype(value) && !datatype.ignoreSerialization) {
+                        result = `${datatypeName};${datatype.serialize(value)}`;
+                        break;
+                    }
+                }
+            }
+
+            if (!replacer) {
                 return typeof result !== 'undefined' ? result : value;
+            } else {
+                return replacer(key, typeof result !== 'undefined' ? result : value);
             }
         }, space);
     }

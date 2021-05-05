@@ -2,7 +2,7 @@ module.exports = function (dbname) {
     return {
         tier: 2,
         isSupported: function () {
-            return window.indexedDB;
+            return globalThis.indexedDB;
         },
         init: function () {
             const requestDB = indexedDB.open('PluriDB', 1);

@@ -32,44 +32,50 @@ module.exports = {
             api.promise = promise;
             return api;
         }
+        function ourCallback (callback) {
+            return function (error, result) {
+                const newResult = JSON2.parse(result);
+                callback(error, newResult);
+            };
+        }
         const returnedApi = {
             tables: {
                 getTable: (callback, name) => {
-                    execute(callback, 'default', 'tables', 'getTable', name);
+                    execute(ourCallback(callback), 'default', 'tables', 'getTable', name);
                 },
                 getTables: (callback) => {
-                    execute(callback, 'default', 'tables', 'getTables');
+                    execute(ourCallback(callback), 'default', 'tables', 'getTables');
                 },
                 createTable: (callback, name, columns) => {
-                    execute(callback, 'default', 'tables', 'createTable', name, JSON2.stringify(columns));
+                    execute(ourCallback(callback), 'default', 'tables', 'createTable', name, JSON2.stringify(columns));
                 },
                 deleteTable: (callback, name) => {
-                    execute(callback, 'default', 'tables', 'deleteTable', name);
+                    execute(ourCallback(callback), 'default', 'tables', 'deleteTable', name);
                 },
                 updateTable: (callback, name, columns) => {
-                    execute(callback, 'default', 'tables', 'updateTable', name, JSON2.stringify(columns));
+                    execute(ourCallback(callback), 'default', 'tables', 'updateTable', name, JSON2.stringify(columns));
                 }
             },
             data: {
                 getData: (callback, table, filter, tree) => {
-                    execute(callback, 'default', 'data', 'getData', table, JSON2.stringify(filter), JSON2.stringify(tree));
+                    execute(ourCallback(callback), 'default', 'data', 'getData', table, JSON2.stringify(filter), JSON2.stringify(tree));
                 },
                 createData: (callback, table, data) => {
-                    execute(callback, 'default', 'data', 'createData', table, JSON2.stringify(data));
+                    execute(ourCallback(callback), 'default', 'data', 'createData', table, JSON2.stringify(data));
                 },
                 deleteData: (callback, table, filter, tree) => {
-                    execute(callback, 'default', 'data', 'deleteData', table, JSON2.stringify(filter), JSON2.stringify(tree));
+                    execute(ourCallback(callback), 'default', 'data', 'deleteData', table, JSON2.stringify(filter), JSON2.stringify(tree));
                 },
                 updateData: (callback, table, data, filter, tree) => {
-                    execute(callback, 'default', 'data', 'updateData', table, JSON2.stringify(data), JSON2.stringify(filter), JSON2.stringify(tree));
+                    execute(ourCallback(callback), 'default', 'data', 'updateData', table, JSON2.stringify(data), JSON2.stringify(filter), JSON2.stringify(tree));
                 }
             },
             utils: {
                 startTransaction: (callback) => {
-                    execute(callback, 'default', 'utils', 'startTransaction');
+                    execute(ourCallback(callback), 'default', 'utils', 'startTransaction');
                 },
                 endTransaction: (callback) => {
-                    execute(callback, 'default', 'utils', 'endTransaction');
+                    execute(ourCallback(callback), 'default', 'utils', 'endTransaction');
                 }
             },
             scopedFunction: function (executable, scope) {
@@ -97,7 +103,7 @@ module.exports = {
                     return value;
                 }
             });
-            return await db[target][method](...parsedArgs);
+            return JSON2.stringify(await db[target][method](...parsedArgs));
         };
     }
 };
