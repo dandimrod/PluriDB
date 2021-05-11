@@ -123,30 +123,30 @@ function Database (dbName, options, storage, JSON2) {
             }
             return out.join('');
         }
-        let compress;
-        let decompress;
-        if (secret) {
-            compress = async function (data) {
-                return await encStr(data, secret);
-            };
-            decompress = async function (data) {
-                try {
-                    return await decStr(data, secret);
-                } catch (err) {
-                    postMessage({ badPassword: true });
-                    throw new Error('INDEXSQL ERROR: Bad Password');
+        if (typeof secret === 'string') {
+            return {
+                compress: async function (data) {
+                    return await encStr(data, secret);
+                },
+                decompress: async function (data) {
+                    try {
+                        return await decStr(data, secret);
+                    } catch (err) {
+                        postMessage({ badPassword: true });
+                        throw new Error('Bad Password');
+                    }
                 }
             };
         } else {
-            compress = async function (data) {
-                return lzwEncode(data);
-            };
-            decompress = async function (data) {
-                return lzwDecode(data);
+            return {
+                compress: async function (data) {
+                    return lzwEncode(data);
+                },
+                decompress: async function (data) {
+                    return lzwDecode(data);
+                }
             };
         }
-
-        return { compress, decompress };
     }
     async function commit () {
         if (!transaction) {
@@ -329,13 +329,71 @@ function Database (dbName, options, storage, JSON2) {
         }
         return {};
     }
+    function transformData (registry, transformation) {
+        if (!transformation || !Array.isArray(transformation)) {
+            return registry;
+        }
+        try {
+            const registryClone = JSON2.parse(JSON2.stringify(registry));
+            let registryArray = Object.entries(registryClone);
+            let isReduced = false;
+            for (let index = 0; index < transformation.length; index++) {
+                const operation = transformation[index];
+                if (!Array.isArray(registryArray)) {
+                    break;
+                }
+                switch (operation.type.toLowerCase()) {
+                    case 'filter': {
+                        registryArray = registryArray.filter(
+                            ([key, value], index) => {
+                                return operation.executable(value, key, registryClone, index);
+                            }
+                        );
+                        break;
+                    }
+                    case 'map':
+                        registryArray = registryArray.map(
+                            ([key, value], index) => {
+                                return [key, operation.executable(value, key, registryClone, index)];
+                            }
+                        );
+                        break;
+                    case 'sort':
+                        registryArray = registryArray.sort(
+                            ([keyA, valueA], [keyB, valueB]) => {
+                                return operation.executable(valueA, valueB, keyA, keyB);
+                            }
+                        );
+                        break;
+                    case 'reduce':
+                    case 'reduceRight':
+                        registryArray = registryArray[operation.type](
+                            (currentValue, [key, value], index) => {
+                                return operation.executable(currentValue, value, key, registryClone, index);
+                            }, operation.initialValue
+                        );
+                        isReduced = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (Array.isArray(registryArray) && !isReduced) {
+                return Object.fromEntries(registryArray);
+            } else {
+                return registryArray;
+            }
+        } catch (e) {
+            return { error: 'Malformed transformation: ' + e };
+        }
+    }
     function filterData (registry, filter) {
         if (!filter) {
             return registry;
         }
         try {
             const passed = {};
-            const registryClone = JSON.parse(JSON2.stringify(registry));
+            const registryClone = JSON2.parse(JSON2.stringify(registry));
             for (const key in registry) {
                 if (Object.prototype.hasOwnProperty.call(registry, key)) {
                     const data = JSON2.parse(JSON2.stringify(registry[key]));
@@ -476,7 +534,7 @@ function Database (dbName, options, storage, JSON2) {
             }
         },
         data: {
-            getData: function (tableName, filter, tree) {
+            getData: function (tableName, filter, tree, transform) {
                 if (!db.t[tableName]) {
                     endedOnError();
                     return { error: 'Table ' + tableName + ' does not exist' };
@@ -491,7 +549,12 @@ function Database (dbName, options, storage, JSON2) {
                     endedOnError();
                     return returned;
                 }
-                return { result: returned };
+                const transformed = transformData(returned, transform);
+                if (transformed.error) {
+                    endedOnError();
+                    return transformed;
+                }
+                return { result: transformed };
             },
             createData: function (tableName, data) {
                 if (!db.t[tableName]) {
