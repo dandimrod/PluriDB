@@ -57,8 +57,8 @@ module.exports = {
                 }
             },
             data: {
-                getData: (callback, table, filter, tree) => {
-                    execute(ourCallback(callback), 'default', 'data', 'getData', table, JSON2.stringify(filter), JSON2.stringify(tree));
+                getData: (callback, table, filter, tree, transform) => {
+                    execute(ourCallback(callback), 'default', 'data', 'getData', table, JSON2.stringify(filter), JSON2.stringify(tree), JSON2.stringify(transform));
                 },
                 createData: (callback, table, data) => {
                     execute(ourCallback(callback), 'default', 'data', 'createData', table, JSON2.stringify(data));
