@@ -9,6 +9,15 @@ PluriDB is a database capable to adapt to a lot of storage apis used in the fron
 To access the database, you can use modules to use the language you are more confortable with, from SQL to MongoDB.
 
 ### Main features
+- Compatible with any storage api (Included custom ones)
+- Compatible with many languages to access the database (Included custom ones)
+- Compatible with any datatypes (Included custom ones)
+- Compatible with web workers (Using a different thread will improve the performance of your webpage)
+- Works in both in browser and in node.
+- Works with any framework.
+- UMD and ESModule options available.
+- 0 dependencies.
+- Easy backups and restore from your server.
 
 ## Demo
 
