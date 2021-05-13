@@ -94,19 +94,17 @@ function PluriDB (dbName, userOptions, callback) {
                 break;
             }
             default:
-                worker = db.server(require('./js/storage'), require('./js/parser'), require('./js/database'), require('./js/datatype'))(dbName, options, PluriDB.modules);
+                worker = db.server(require('./js/storage'), require('./js/parser'), require('./js/database'), require('./js/datatype'))(
+                    dbName,
+                    options,
+                    JSON.parse(JSON.stringify(PluriDB.modules, (data, val) => typeof val === 'function' ? val.toString() : val))
+                );
                 break;
         }
         return worker;
     })();
     db.worker.onmessage = function (e) {
         switch (e.data.type) {
-            case 'load':
-                if (result.onload && typeof result.onload === 'function') {
-                    result.onload();
-                }
-                break;
-
             case 'error':
                 if (options.worker) {
                     db.worker.terminate();
@@ -115,6 +113,8 @@ function PluriDB (dbName, userOptions, callback) {
                 if (result.onerror && typeof result.onerror === 'function') {
                     result.onerror(e.data.error);
                 }
+                db.callbacks[e.data.id](e.data.error, e.data.response);
+                db.callbacks[e.data.id] = undefined;
                 break;
 
             case 'backup':

@@ -36,11 +36,14 @@ function Server (Storage, Parser, Database, Datatype) {
                     case 'restore':
                         await database.restore(e.data);
                         break;
+                    case 'init':
+                        result = await initServices();
+                        break;
                 }
                 result.id = id;
                 messageRelay(result);
             } catch (error) {
-                messageRelay({ error: error.message, id: e.data.id });
+                messageRelay({ error: error.message, id: e.data.id, type: 'error' });
             }
         }
         async function updateOptions (newOptions) {
@@ -65,12 +68,12 @@ function Server (Storage, Parser, Database, Datatype) {
                 await database.init(messageRelay);
                 parser.init();
                 parser.loaded = true;
-                messageRelay({ type: 'load' });
+                return { type: 'result', response: { message: 'Database was loaded' } };
             } catch (error) {
-                messageRelay({
+                return {
                     type: 'error',
                     error: 'There was an error during the initialization of the database: ' + error.message
-                });
+                };
             }
         }
         const init = (context) => {
@@ -99,7 +102,6 @@ function Server (Storage, Parser, Database, Datatype) {
                     };
                 }
             }
-            initServices();
             return returnData;
         };
         return init(context);

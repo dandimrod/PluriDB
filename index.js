@@ -17,6 +17,17 @@ const modules = [
     './src/PluriDB'
 ];
 
+const readmes = [
+    {
+        from: './docs/docs/README.md',
+        to: './README.md'
+    },
+    {
+        from: './docs/docs/README.md',
+        to: './src/PluriDB/README.md'
+    }
+];
+
 const runner = (config) => {
     return new Promise((res, rej) => {
         webpack(config).run((err, stats) => {
@@ -58,8 +69,21 @@ const copyFolderRecursiveSync = function (src, dest, cb) {
         }
     }
 };
+const generateDocs = () => {
+    for (const readme of readmes) {
+        let data = fs.readFileSync(readme.from, 'utf-8');
+        data = data.replace(/\(README.md#(.+)\)/gmi, '(https://dandimrod.dev/PluriDB/docs/#/?id=$21)');
+        data = data.replace(/\(README.md\)/gmi, '(https://dandimrod.dev/PluriDB/docs/#/)');
+        data = data.replace(/\((.*)\.md#(.+)\)/gmi, '(https://dandimrod.dev/PluriDB/docs/#/$1?id=$2)');
+        data = data.replace(/\((.*)\.md\)/gmi, '(https://dandimrod.dev/PluriDB/docs/#$1)');
+        fs.writeFileSync(readme.to, data);
+    }
+};
 const serve = async () => {
-    async function serveGenerate () {
+    async function serveGenerate (event, changedPath) {
+        if (readmes.find(readme => path.normalize(readme.to) === changedPath)) {
+            return;
+        }
         console.log('Building site...');
         if (fs.existsSync('./build')) {
             deleteFolderRecursive('./build');
@@ -69,6 +93,7 @@ const serve = async () => {
                 fs.writeFileSync(path, fs.readFileSync(path, 'utf-8').replace('const isProduction = true;', 'const isProduction = false;'));
             }
         });
+        generateDocs();
         await runner(webpackConfig);
     }
     await serveGenerate();

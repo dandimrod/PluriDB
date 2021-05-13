@@ -116,7 +116,7 @@ module.exports = {
         }
     },
     storage: {
-        indexdb: require('./indexdb'),
+        indexeddb: require('./indexdb'),
         localstorage: require('./localstorage'),
         ram: require('./ram')
     }
