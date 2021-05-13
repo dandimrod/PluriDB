@@ -132,7 +132,6 @@ function Database (dbName, options, storage, JSON2) {
                     try {
                         return await decStr(data, secret);
                     } catch (err) {
-                        postMessage({ badPassword: true });
                         throw new Error('Bad Password');
                     }
                 }

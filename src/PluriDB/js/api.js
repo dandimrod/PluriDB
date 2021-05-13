@@ -8,22 +8,42 @@ function Api (modules, db, JSON2) {
     function updateDB (callback, updatedValues) {
         db.id++;
         db.callbacks[db.id] = callback;
-        db.worker.postMessage({ type: 'updateDB', updateDB: updatedValues });
+        db.worker.postMessage({ type: 'updateDB', updateDB: updatedValues, id: db.id });
     }
 
     function drop (callback) {
         db.id++;
         db.callbacks[db.id] = callback;
-        db.worker.postMessage({ type: 'drop' });
+        db.worker.postMessage({ type: 'drop', id: db.id });
     }
 
     function forceBackup (callback) {
         db.id++;
         db.callbacks[db.id] = callback;
-        db.worker.postMessage({ type: 'backup' });
+        db.worker.postMessage({ type: 'backup', id: db.id });
     }
-
-    const result = { execute, updateDB, drop, forceBackup };
+    // TODO: ADD THIS FUNCTIONALITY
+    // function forceRestore (callback) {
+    //     db.id++;
+    //     db.callbacks[db.id] = callback;
+    //     db.worker.postMessage({ type: 'restore' });
+    // }
+    // function manualBackup (callback) {
+    //     db.id++;
+    //     db.callbacks[db.id] = callback;
+    //     db.worker.postMessage({ type: 'manualBackup' });
+    // }
+    // function manualRestore (callback, db) {
+    //     db.id++;
+    //     db.callbacks[db.id] = callback;
+    //     db.worker.postMessage({ type: 'manualRestore', db });
+    // }
+    function initDatabase (callback) {
+        db.id++;
+        db.callbacks[db.id] = callback;
+        db.worker.postMessage({ type: 'init', id: db.id });
+    }
+    const result = { execute, updateDB, drop, forceBackup, init: initDatabase };
 
     function promisifyApi (result) {
         const promise = {};
@@ -34,7 +54,10 @@ function Api (modules, db, JSON2) {
                 promise[functionData] = function (...args) {
                     return new Promise((resolve, reject) => {
                         try {
-                            args.unshift((result) => {
+                            args.unshift((error, result) => {
+                                if (error) {
+                                    reject(error);
+                                }
                                 resolve(result);
                             });
                             functionExecutable(...args);

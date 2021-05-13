@@ -132,6 +132,7 @@ PluriDB.loadModule(mongoModule);</pre>
                     <div class="code">
                         <pre>
 const pluriDB = new PluriDB('test');
+pluriDB.init();
 pluriDb.modules.mongodb.student.insert({ name:"Jhon", age:12 });
 pluriDb.modules.mongodb.student.find({ "age " :  4 });</pre>
                     </div>
