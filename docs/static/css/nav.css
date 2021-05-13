@@ -1,8 +1,7 @@
 /* Nav */
 #nav {
     z-index: 99;
-    position: fixed;
-    width: 100%;
+    position: sticky;
     top: 0;
     background-color: #FFF;
     font-size: 0;
