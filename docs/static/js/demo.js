@@ -6,7 +6,7 @@ const modules = [
 
 const examples = {
     'Main uses': {
-        'Initialize database': "db = new PluriDB('demo',{\r\n    worker: true, // Will it use a webworker or not?\r\n    api: 'indexdb', // What technology to use\r\n    fallback: true, // Allows fallback?\r\n    db:{\r\n        backup: undefined, // function for backup\r\n        restore: undefined, // function for restore\r\n        encrypt: false, // password for encryption\r\n    }\r\n});\r\ndb.promise.init().then(output).catch(output);",
+        'Initialize database': "db = new PluriDB('demo',{\r\n    worker: true, // Will it use a webworker or not?\r\n    api: 'indexeddb', // What technology to use\r\n    fallback: true, // Allows fallback?\r\n    db:{\r\n        backup: undefined, // function for backup\r\n        restore: undefined, // function for restore\r\n        encrypt: false, // password for encryption\r\n    }\r\n});\r\ndb.promise.init().then(output).catch(output);",
         'Clear Database': 'db.promise.drop().then(output).catch(output);',
         'Force a backup': 'db.promise.forceBackup().then(output).catch(output); // This won\'t work in the middle of a transaction'
     },
@@ -135,7 +135,8 @@ function loadModules () {
 
 async function setupDatabase () {
     const db = new PluriDB('demo', {
-        worker: false
+        worker: false,
+        storage: 'indexeddb'
     });
     await db.promise.init();
     return db;

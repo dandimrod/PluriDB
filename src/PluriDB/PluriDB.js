@@ -29,7 +29,7 @@
 function PluriDB (dbName, userOptions, callback) {
     const defaultOptions = {
         worker: true,
-        storage: 'indexdb', // localstorage ram
+        storage: 'indexeddb', // localstorage ram
         fallback: true,
         db: {
             encrypt: false,
