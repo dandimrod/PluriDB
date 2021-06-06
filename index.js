@@ -10,11 +10,12 @@ const grizzly = require('grizzly');
 const putasset = require('putasset');
 const { Octokit } = require('@octokit/rest');
 
-const version = '0.3.0';
+const version = '0.4.0';
 const name = 'PluriDB';
 
 const modules = [
-    './src/PluriDB'
+    './src/PluriDB',
+    './src/modules/sql'
 ];
 
 const readmes = [
@@ -25,6 +26,10 @@ const readmes = [
     {
         from: './docs/docs/README.md',
         to: './src/PluriDB/README.md'
+    },
+    {
+        from: './docs/docs/sql.md',
+        to: './src/modules/sql/README.md'
     }
 ];
 
@@ -80,6 +85,15 @@ const generateDocs = () => {
     }
 };
 const serve = async () => {
+    const debounce = func => {
+        let timer;
+        return event => {
+            if (timer) {
+                clearTimeout(timer);
+            }
+            timer = setTimeout(func, 10000, event);
+        };
+    };
     async function serveGenerate (event, changedPath) {
         if (readmes.find(readme => path.normalize(readme.to) === changedPath)) {
             return;
@@ -97,8 +111,9 @@ const serve = async () => {
         await runner(webpackConfig);
     }
     await serveGenerate();
-    chokidar.watch('./src').on('all', serveGenerate);
-    chokidar.watch('./docs').on('all', serveGenerate);
+    const debounced = debounce(serveGenerate);
+    chokidar.watch('./src').on('all', debounced);
+    chokidar.watch('./docs').on('all', debounced);
     const fileServer = new staticNode.Server('./build');
     require('http').createServer(function (request, response) {
         request.addListener('end', function () {

@@ -5,3 +5,4 @@
     * [Creating custom modules](creatingModules.md)
     * Module List
         * [default](default.md)
+        * [SQL](sql.md)
