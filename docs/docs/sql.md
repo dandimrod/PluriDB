@@ -12,7 +12,7 @@ To install the sql module, first you have to install it by npm:
 Or by CDN [https://cdn.jsdelivr.net/npm/pdbm-sql@latest/](https://cdn.jsdelivr.net/npm/pdbm-sql@latest/):
 
 ```html
-    <script src="https://cdn.jsdelivr.net/npm/pdbm-sql@latest/pdbm-sql.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdbm-sql@latest/pdbm_sql.js"></script>
 ```
 
 Afterwards you need to load the module by:

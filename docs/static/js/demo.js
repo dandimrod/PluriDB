@@ -1,7 +1,7 @@
 const isProduction = true;
 const modules = [
     // { moduleName: 'pdbm_mongodb', pro: '', dev: '../pdbm_mongodb.js' },
-    { moduleName: 'pdbm_sql', pro: '', dev: '../pdbm_sql.js' },
+    { moduleName: 'pdbm_sql', pro: 'https://cdn.jsdelivr.net/npm/pdbm-sql@latest/pdbm_sql.js', dev: '../pdbm_sql.js' },
     { pro: 'https://cdn.jsdelivr.net/npm/pluridb@latest/PluriDB.js', dev: '../PluriDB.js' }
 ];
 
