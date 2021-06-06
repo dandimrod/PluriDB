@@ -1,6 +1,7 @@
 const isProduction = true;
 const modules = [
     // { moduleName: 'pdbm_mongodb', pro: '', dev: '../pdbm_mongodb.js' },
+    { moduleName: 'pdbm_sql', pro: '', dev: '../pdbm_sql.js' },
     { pro: 'https://cdn.jsdelivr.net/npm/pluridb@latest/PluriDB.js', dev: '../PluriDB.js' }
 ];
 
@@ -21,6 +22,9 @@ const examples = {
         'Delete data': "db.m.default.promise.data.deleteData('people', (value)=>{\n    return value.name ===  'john smith'; //This is our filter function\n}\n).then(output).catch(output);",
         'Show data': "db.m.default.promise.data.getData(\n    'pet',\n    (value)=>{\n        return value.name === 'coco';\n    }, // filter function\n    ['owner'] // The paramether here will exchange references with the object inserted in the database (Like SQL JOIN)\n).then(output).catch(output);",
         'Management of transactions': "db.m.default.promise.utils.startTransaction();\ndb.m.default.promise.data.createData('people', { \n    name: 'john doe',   \n    age: 3 // This registry will fail due to the constraint of age\n}).then(output).catch(output);\n\ndb.m.default.promise.data.createData('pet', { \n    name: 'coco', // This registry will fail because the previous one did too\n    owner: '0'\n}).then(output).catch(output);\ndb.m.default.promise.utils.endTransaction();\n"
+    },
+    'Examples of SQL module':{
+        'SQL handling': 'db.m.sql.queryPromise(`\r\n    START TRANSACTION;\r\n    DROP TABLE Persons;\r\n    DROP TABLE Orders;\r\n    CREATE TABLE Persons (\r\n        PersonID number NOT_NULL AUTO_INCREMENT,\r\n        Name string NOT_NULL,\r\n        IsMale boolean NOT_NULL,\r\n        PRIMARY KEY (PersonID)\r\n    );\r\n    CREATE TABLE Orders (\r\n        OrderID number NOT_NULL AUTO_INCREMENT,\r\n        OrderNumber number NOT_NULL,\r\n        PersonID number,\r\n        PRIMARY KEY (OrderID),\r\n        FOREIGN KEY (PersonID) REFERENCES Persons(PersonID)\r\n    );\r\n    INSERT INTO Persons (Name, IsMale)\r\n        VALUES (\"pipo\", true);\r\n    INSERT INTO Persons (Name, IsMale)\r\n        VALUES (\"pepa\", false);\r\n    INSERT INTO Orders (OrderNumber, PersonID) \r\n        VALUES (1,0);\r\n    SELECT Name FROM Persons;\r\n    SELECT Name,IsMale FROM Persons ORDER BY Name, IsMale DESC;\r\n    SELECT * FROM Persons ORDER BY PersonID DESC;\r\n    SELECT * FROM Persons WHERE Name=\"pipo\";\r\n    SELECT * FROM Persons WHERE IsMale=false;\r\n    SELECT * FROM Persons WHERE PersonID=0;\r\n    SELECT * FROM Persons WHERE Name=\"pipo\" OR IsMale=false;\r\n    SELECT * FROM Persons WHERE Name=\"pipo\" AND IsMale=false;\r\n    SELECT * FROM Persons WHERE NOT( Name=\"pipo\" AND IsMale=false);\r\n    UPDATE Persons SET IsMale=false;\r\n    SELECT * FROM Persons;\r\n    UPDATE Persons SET IsMale=true WHERE Name=\"pipo\";\r\n    SELECT * FROM Persons;\r\n    DELETE FROM Orders;\r\n    SELECT * FROM Orders;\r\n    DELETE FROM Persons WHERE IsMale=false;\r\n    SELECT * FROM Persons;\r\n    END TRANSACTION;\r\n`).then(output).catch(output)'
     }
 };
 

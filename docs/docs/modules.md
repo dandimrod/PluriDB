@@ -13,6 +13,7 @@ These modules add a new lenguage to interact with the database. Ex. SQL, MongoDB
 List of modules:
 
 * [default](default.md#apiparser)
+* [sql](sql.md#apiparser)
 
 ## Datatype modules
 
