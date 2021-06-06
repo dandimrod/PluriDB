@@ -1,5 +1,5 @@
 {
   "name": "pdbm-sql",
   "description": "A SQL parser for PluriDB",
-  "main": "pdbm-sql.js"
+  "main": "pdbm_sql.js"
 }
