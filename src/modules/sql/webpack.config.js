@@ -3,11 +3,11 @@ const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
     mode: 'production',
-    entry: __dirname,
+    entry: path.resolve(__dirname, 'pdbm_sql.js'),
     output: {
         path: path.resolve(__dirname, 'build'),
-        filename: 'pdbm-sql.js',
-        library: 'pdbm-sql',
+        filename: 'pdbm_sql.js',
+        library: 'pdbm_sql',
         libraryTarget: 'var',
         umdNamedDefine: true,
         globalObject: "typeof self !== 'undefined' ? self : this"
